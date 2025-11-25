@@ -1,87 +1,84 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "theme": "aspen",
+  "name": "InOrbit Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#2A3C98",
+    "light": "#3F93FF",
+    "dark": "#282967"
   },
-  "favicon": "/favicon.svg",
+  "description": "Documentation for InOrbit's robot operations platform",
+  "fonts": {
+    "heading": {
+      "family": "Manrope"
+    }
+  },
+  "appearance": {
+    "default": "system",
+    "strict": false
+  },
+  "favicon": {
+    "light": "/images/brand/favicon.png",
+    "dark": "/images/brand/favicon.png"
+  },
+  "head": [
+    "<link rel=\"stylesheet\" href=\"/style.css\">"
+  ],
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
   "navigation": {
-    "tabs": [
+    "products": [
       {
-        "tab": "Guides",
-        "groups": [
+        "product": "Home",
+        "icon": "house",
+        "pages": [
+          "index"
+        ]
+      },
+      {
+        "product": "Space Intelligence",
+        "icon": "rocket",
+        "description": "Fleet management and business execution for end users",
+        "tabs": [
           {
-            "group": "Getting started",
+            "tab": "Overview",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "space-intelligence/index"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
+        "product": "Ground Control",
+        "icon": "code",
+        "description": "Developer tools and SDKs for robot integration",
+        "tabs": [
           {
-            "group": "API documentation",
+            "tab": "Overview",
             "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "ground-control/index"
             ]
           }
         ]
+      },
+      {
+        "product": "OpenRobOps",
+        "icon": "code-branch",
+        "description": "Open source fleet management platform",
+        "pages": [
+          "openrobops/index"
+        ]
+      },
+      {
+        "product": "Connect",
+        "icon": "network-wired",
+        "description": "Ecosystem of hardware partners and integrations",
+        "pages": [
+          "connect/index"
+        ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -91,13 +88,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@inorbit.ai"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get Started",
+      "href": "https://console.inorbit.ai"
     }
   },
   "contextual": {
@@ -114,9 +111,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/inorbitai",
+      "github": "https://github.com/inorbit-ai",
+      "linkedin": "https://linkedin.com/company/inorbit"
     }
   }
 }
