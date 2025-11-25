@@ -1,0 +1,38 @@
+---
+title: "Robot Footprint"
+description: "Configuration reference for Robot Footprint"
+---
+
+> Robot Footprint Object Example
+
+```json
+{
+  "metadata": {
+    "scope": "<scope>",
+    "id": "all"
+  },
+  "apiVersion": "v0.1",
+  "kind": "RobotFootprint",
+  "spec": {
+    "footprint": [
+      { "x": -0.5, "y": -0.5 },
+      { "x":  0.3, "y": -0.5 },
+      { "x":  0.7, "y":  0.0 },
+      { "x":  0.3, "y":  0.5 },
+      { "x": -0.5, "y":  0.5 },
+    ],
+    "radius": 0.2,
+  }
+}
+```
+
+The `RobotFootprint` kind allows configuring the *footprint* of a robot. The footprint is the area that the robot occupies in a map and it is used for representing the robot in map views.
+
+Unlike most other configurations in this section, `RobotFootprint` is a "global" config, meaning there can only be one per unique scope. For this reason, the only accepted `id` value is `"all"`.
+
+The `spec` of a robot footprint configuration has the following properties:
+
+- `footprint`: (Optional) Footprint shape, defined as a list of points of minimum length 3. Each point is an object with `x` and `y` properties, representing the position of the point in meters relative to the reported position of the robot. If not provided, the footprint will take a circular shape with a radius set by the `radius` property.
+- `radius`: (Optional) Sets the size of the inner orientation indicator. If set to `0`, no indicator will be shown. If `footprint` is not provided, the radius of the circular footprint will be adjusted proportionally to this number.
+
+**Note:** If only one of the two properties is provided, the other will be taken from the configuration applied to the robot's tag(s) or the configuration at the account level.

@@ -1,0 +1,147 @@
+---
+title: "InOrbit CLI"
+description: "Command-line interface for managing configurations"
+---
+
+This section explains how to install and configure InOrbit's CLI. The CLI allows you to apply, list, and clear configurations.
+
+There are two methods for installing the CLI. The prerequisite is having either Python 3 or Docker installed, depending on installation method.
+
+## Using the InOrbit CLI with Docker
+
+The InOrbit CLI is distributed in a Docker image which is available on [DockerHub](https://hub.docker.com/r/inorbitai/cli). To run the container, follow the commands below:
+
+```bash
+export INORBIT_CLI_API_KEY="account_api_key"
+docker run -e INORBIT_CLI_API_KEY=$INORBIT_CLI_API_KEY -v $(pwd):$(pwd) -ti inorbitai/cli
+```
+
+<Info>
+It is possible to mount a volume with all configuration files inside the container to make editing and applying them easier. This example uses the current working directory.
+</Info>
+
+## Installing the Package
+
+The other method is to install the official Python package from [PyPi](https://pypi.org/project/inorbit-cli/).
+
+```bash
+pip install inorbit-cli
+```
+
+The [inorbit-cli](https://pypi.org/project/inorbit-cli/) package can be installed using `pip` by running the command above.
+
+## Configuring Environment Variables
+
+```shell
+# Example configuration of environment variables for the CLI
+export INORBIT_CLI_API_KEY="account_api_key"
+export INORBIT_CLI_VERBOSE="true" #optional
+```
+
+Before using the CLI, you'll need to configure the `INORBIT_CLI_API_KEY` with your API key. You can get the API key from the [Developer Console](https://console.inorbit.ai).
+
+The CLI verbose mode can be enabled by setting the `INORBIT_CLI_VERBOSE` environment variable to `true`.
+
+## Getting Started with the CLI
+
+By typing the `inorbit` or `inorbit --help` command, you will find the CLI's help.
+
+The CLI provides the following main commands:
+
+- `apply`: Applies a configuration object.
+- `delete`: Deletes a configuration object.
+- `get`: Lists or dumps configuration objects.
+- `describe`: Get detailed information about configuration objects.
+
+## Listing Tags and Robots
+
+```bash
+# Example output -> Collections
+Collection 'Location' has 2 tags
+==========  ========
+tag name    tag id
+==========  ========
+HQ          hq
+Lab         lab
+==========  ========
+
+# Example output -> Robots
+name                 id  agent version    online    last seen
+------------  ---------  ---------------  --------  --------------------------
+Inorbito      foo        4.4.0            False     1970-01-01T00:00:00.000001
+
+# Example output -> Tags
+name               description                     collection id    collection name
+-----------------  ------------------------------  ---------------  -----------------
+hardware-problems  Marked with hardware problems.  tags             Other
+HQ                 Headquarters.                   location         Location
+```
+
+To learn more about your entities, just run the `inorbit describe <entity>` command. You can query the following entities:
+
+- **collections**: Describe all collections and detailed collection data.
+- **robots**: Describe all robots and detailed robot data.
+- **tags**: Describe all tags and detailed tag data.
+
+## Applying a Configuration Object
+
+The `apply` command can be used to create or update configuration objects. To apply a configuration object follow these steps:
+
+1. Create a JSON file describing the configuration object. (The reference schemas for the different kinds are described in following sections)
+
+2. Run `inorbit apply -f config_file.json`. If everything goes well, you'll see a message like `Configuration <config/file/path> applied successfully`.
+
+3. You can use `inorbit get config --scope "<scope>" --kind "<kind>" "<object_id>" --dump` to check that the configuration object was correctly saved in InOrbit.
+
+Refer to the [advanced configuration](/ground-control/configuration/overview#advanced-configuration-scopes) section for detailed documentation on how to use *scopes*.
+
+The *kind* includes statuses, incident definition, etc. Find their reference in the following sections.
+
+## Deleting a Configuration Object
+
+To delete a configuration object, run `inorbit delete config --kind "<kind>" "<object_id>" --scope "<scope>"`.
+
+You will receive an `ok` response if the configuration object was successfully deleted.
+
+To make sure that the configuration object was deleted, run `inorbit get config --scope "<scope>" --kind "<kind>" "<object_id>"` and check that there are no results.
+
+## Listing Configuration Objects
+
+Example listing of all config objects of a given kind:
+
+```shell
+$ inorbit get config --scope "*" --kind "Kind"
+id                kind                label       scope                      suppressed
+----------------  ------------------  -------     -------------------------  ------------
+foo               Kind                Battery     account/bar                False
+bar               Kind                Other Label tag/baz/qux                False
+baz               Kind                            robot/qux/quux             True
+```
+
+Example: Detailed JSON dump of all `IncidentDefinition` objects applying to the entire account:
+
+```shell
+$ inorbit get config --scope "tag/foo/bar" --kind "IncidentDefinition" --dump
+[
+  {
+    "metadata": {
+      "scope": "tag/foo/bar",
+      "id": "bar"
+    },
+    "apiVersion": "v0.1",
+    "spec": {
+
+    },
+    "kind": "IncidentDefinition"
+  }
+]
+```
+
+The CLI can query and list any kind of configuration objects using: `inorbit get config --scope "<scope>" --kind "<kind>"`.
+
+The `--dump` option can also be used to dump the contents (in JSON form) of the objects instead of just listing them.
+
+<Info>
+By default the operation lists any configuration object defined for the account, but system defaults are hidden. They can be included adding the `--include-system-defaults` option.
+</Info>
+

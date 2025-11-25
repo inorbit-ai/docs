@@ -1,0 +1,88 @@
+---
+title: "Configuration Overview"
+description: "Introduction to InOrbit configuration management"
+---
+
+Basic configuration can be handled through [InOrbit Control](https://control.inorbit.ai/login). For more advanced configuration that also unlocks other benefits, it is recommended to use Configuration as Code. Configuration as Code allows you to customize different InOrbit settings using code. This way you can manage your settings using DevOps best practices and handle complex configurations in an efficient and programmatic way.
+
+Configurations can be coded using JSON and then be managed using InOrbit's command-line interface (CLI) or through REST APIs. The CLI is distributed as a Python package and can be installed through `pip`.
+
+Additionally, using configuration as code offers the following advantages:
+
+- Version control of changes
+- Workflows: PR, review, approve, traceability
+- CI/CD
+- Reusable and reproducible configurations
+- Rollback of changes
+- Security
+- Auditing
+- Software parametrization
+
+## Summary
+
+InOrbit's configuration as code mechanism is built around the concept of **configuration objects**. These objects and their properties set how InOrbit and your robots must behave. For example, a configuration object can define Incident rules.
+
+```json
+{
+    "kind": "<configuration_kind>",
+    "apiVersion": "<api_version>",
+    "metadata": {
+        "id": "<configuration_id>",
+        "scope": "<scope>"
+    },
+    "spec": {
+        "someProperty": "someValue",
+        "anotherProperty": "anotherValue"
+    }
+}
+```
+
+Each configuration object has the following general properties:
+
+- **kind**: Type of setting this configuration refers to, for example Incident. The supported kinds are described later in this document.
+- **scope**: The scope for which this configuration applies.
+- **apiVersion**: Current API version.
+- **spec**: Configuration values.
+
+## Configuration Scopes
+
+As stated above, each configuration object applies to a specific **scope**. Currently, the following levels of scope are supported:
+
+- `root`: This is a system-wide level with default configurations.
+- `account`: Applies to the whole account. Can be specified using `account` or `account/<ACCOUNT_ID>`.
+- `tag`: Applies only to robots tagged with a specific tag. Can be specified using `tag/<ACCOUNT_ID>/<TAG_ID>`.
+- `robot`: Applies only to a specific robot. Can be specified using `robot/<ACCOUNT_ID>/<ROBOT_ID>`.
+
+Scopes behave like a hierarchy, each level inherits the values from its parent and can override them or *suppress* them.
+
+Suppress means that the configuration object must not be inherited from top levels for the specified scope. This is done by setting the `spec` to `null`.
+
+## Advanced: Configuration Scopes
+
+The Config API supports different *kinds* of objects to configure: for example Actions, Statuses or Incidents.
+
+Normally, these configurations are applied account-wide, meaning that every robot in the account's fleet will make use of the configured objects. This is the case for all configurations applied in the Settings section of the app (unless otherwise stated).
+
+As the robot fleets grow, it is common to require different configurations for several reasons, including for example:
+
+- Distinguishing *production* robots operating in the field versus *lab* robots.
+- Different robot models in a heterogeneous fleet.
+- Managing specific settings that apply only to certain robot versions.
+- Individual robots may be configured with specific settings while debugging one problem.
+
+To address these needs, InOrbit Config API allows users to apply settings to subsets of the robot fleet, using a hierarchy based on *scopes*.
+
+A *scope* defines the extent of the account to which a given configuration object applies. It is usually composed of two parts: a type and the identifier. The valid values are of the form:
+
+- `"account"`, for the entire account associated to an app key; or `"account/<accountId>"` to explicitly refer to a given account.
+- `"tag/<accountId>/<tagId>"` for the set of robots containing a given tag `<tagId>`.
+- `"robot/<accountId>/<robotId>"` to apply a configuration on an individual robot.
+
+Note that configurations at different scopes can contradict each other -- or rather, to re-define or apply different configurations. For example, consider a robot with id `C3P0` with two tags: `interpreter` and `tatooine`. This robot will get applied any configuration from its account, as well as configurations for its tags (`tag/interpreter` and `tag/tatooine`) and configurations at robot level `robot/C3P0`.
+
+If a configuration object exists in more than one scope, the more specific scope would override the settings from more generic scopes. For example, `robot` has precedence over any other configuration (`tag` and `account`), and `tag` has precedence over `account`.
+
+In this way, one can start with global configurations and also define specific settings for robot types, software versions, field locations, assigned customers, etc -- whichever form the account was configured.
+
+When this configuration complexity appears, it is often the case that using *Configuration as Code* best practices become necessary too: for example applying configurations programmatically as opposed to manually applying settings, and using version-control to reliably maintain and audit the changes.
+

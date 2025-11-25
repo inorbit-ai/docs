@@ -1,0 +1,215 @@
+---
+title: "Mission Tracking"
+description: "Configuration reference for Mission Tracking"
+---
+
+
+
+> Mission Tracking config schema
+
+```json
+{
+  "metadata": {
+    "scope": "<scope>",
+    "id": "all"
+  },
+  "apiVersion": "v0.1",
+  "kind": "MissionTracking",
+  "spec": {
+    "processingType": "api|derived",
+    "attributes": {
+      "attributeId1": [
+        {
+          "type": "string",
+          "path": "optional string",
+          "values": ["value1", "value2"],
+          "acceptBeforeStart": 0,
+          "acceptAfterEnd": 0
+        }
+      ],
+      "attributeId2...": []
+    },
+    "missionFields": {
+      "field1": {
+        "defaultInitialValue": "value",
+        "defaultFinalValue": "value",
+        "index": false
+      },
+      "field2...": {}
+    },
+    "stateDefinitions": {
+      "state1": {
+        "defaultStatus": "ok|error|warn",
+      },
+      "state2": {}
+    },
+    "execution": {
+        "modes": {
+            "start": "tagId",
+            "end": "tagId"
+        },
+        "useLocks": true,
+        "waypoints": {
+            "distanceTolerance": 1,
+            "angularTolerance": 1,
+        }
+
+    }
+  }
+}
+```
+
+Mission Tracking allows users to observe and measure their robots' performance while they execute their assigned tasks. Missions vary for every fleet of robots, and InOrbit's API is a generic model to accomodate this. A Mission could represent picking objects, delivering items, cleaning areas, etc.
+
+**Note**: *Mission Tracking is an advanced feature available only in certain
+[editions](https://www.inorbit.ai/pricing). Please
+[contact us](https://www.inorbit.ai/contact) for questions, pricing and help to get started.*
+
+This section details the Config API schema. For details on Mission Tracking concepts, refer to
+[Mission Tracking documentation](https://www.inorbit.ai/docs?hsLang=en#MISSIONS).
+
+
+
+
+Note that unlike most other APIs in this section, Mission Tracking applies to all missions in general.
+For this reason, the only accepted `id` value is `"all"`.
+
+The configuration schema has many different options to accommodate a wide range of Missions. Most fields are optional; and some accept shorter versions for brevity:
+
+- `processingType` indicates if Missions are defined via API calls (`processingType: api`) or "derived"
+through data source updates (`processingType: derived`). API is the recommended processing type. Mission updates are sent by the agent on one data source in the form of JSON-encoded objects. These objects are translated into REST API calls to the [Missions REST API](https://api.inorbit.ai/docs/index.html#tag/missions), and must adhere to its schema. The second case defines one specific data source to act as "boundary" for Missions. When this data source emits a specific value (see `attributes` field) then a mission is assumed to start; and it ends when the data source switches back to a different value. Normally, only one method is used per account; but they can be combined by setting `processingType` to an array containing both processing type values.
+
+- `attributes` specifies how to map attribute updates to Missions. This is an object whose keys are attribute ids, and the values are lists of mappings. (In the case of using only one mapping, which is the most common scenario, an object value within an attribute key is also accepted --see example). Each element should contain the `type` of this mapping. The most important one is the `"mission"` type,
+defining which attribute contains the JSON-encoded API calls or the Mission boundary values (for "api" and "derived" processing types, respectively). More details on attributes are given below.
+
+- `missionFields` configures some special behaviors to Mission fields such as `state`. It can set default initial and ending values which are used if the mission did not receive values to update them.
+
+- `stateDefinitions` allows giving more semantics to the `state` mission field, enabling each _state_ value (a free-form string, although some common states are normally used) to be mapped to a _status_ (one of "ok", "error" and "warn", which are used to determine some metrics when aggregating missions).
+
+- `execution` allows adding some options that define how missions are going to be executed, adjusting some default behaviors for missions.
+
+### Attributes
+
+Each of the objects in attributes define a mapping from a data source (or a portion of it)
+to a mission field.
+Each of these objects accept the following fields:
+
+- `type`: The semantics of the mapping is first defined by this field, one of:
+
+  - `"mission"`: In `processingType = "api"`, this is the data source containing JSON API call updates.
+    In `processingType = "derived"`, this is the mission boundary.
+  - `"label"`: Defines a mission name, viewable in the mission widgets and reports.
+  - `"state"`: Defines the current mission "state", such as "in-progress", "completed", "stuck", etc.
+    Any string value is accepted and their meaning is only assigned by the user.
+  - `"status"`: Defines the current mission status: "ok", "error" or "warn", which is used to determine
+    if the mission was successful when building mission reports.
+  - `"data"`: Defines a mission metadata field. In addition to mission fields defined in the REST API
+    schema (label, state, status, etc.), any number of data elements can be added within a `data`
+    object as metadata. See `label` field above.
+  - `"percent"`: Defines the mission completion percentage; given as a float number between 0 and 1.
+  - `"startTs"`: Defines the start timestamp (in epoch milliseconds) of the mission.
+  It is not necessary to define one; as otherwise the start timestamp is assumed to be the time of the mission
+  creation.
+  - `"endTs"`: Similarly to `startTs`, for the mission end time.
+
+- `values`: Only used for the `"mission"` attribute. Defines which values represent that the robot
+  is currently running a mission. For example, `["delivery"]`.
+
+- `path`: If the attribute is typed as "json" (see Data Sources), then a specific sub-element of it
+  can be selected to determine the mapping. For example, if a data source reports an update of a state
+  machine such as `{ navGoalId: 1234, currentTask: 'delivery', targetRoom: 101 }`, then a path value
+  `"currentTask"` could select the `"mission"` attribute and a path value `targetRoom` could be mapped
+  to a `data` element -- defining two different mappings for the same attribute.
+
+- `label`: Only used for `data`-typed attributes. The `data` object in missions is a key-value
+  dictionary. The keys are defined by the label of the attribute.
+
+- `acceptBeforeStart` and `acceptAfterEnd` allow receiving mission field updates not strictly within
+  the time window where the `mission` attribute takes the values that define a mission.
+  This is used since attributes could be published (and received in the cloud) within some seconds difference,
+  and also because mission plans or mission summaries could be published before or after the mission.
+  These optional values are a number of seconds to allow to wait for additional attribute updates
+  (`acceptAfterEnd`) or to look for previous updates (`acceptBeforeStart`) when a mission starts.
+
+
+
+### Execution
+
+The following fields define some behaviors for missions execution, fields that indicate if robots are going to be locked by the missions when they start and finish running, among other options.
+
+
+
+- `modes`: Defines which modes (tags) are going to be assigned to a robot when it starts or ends the mission execution. The Ids of the tags can be retrieved by using the InOrbit CLI.
+  - `"start"`: Id of the tag (it needs to be a Mode) that you want to assign to the robot when it starts executing a mission.
+  - `"end"`: Id of the tag (it needs to be a Mode) that you want to assign to the robot when it ends executing a mission.
+- `useLocks`: Boolean. If true, the robot will be locked by the InOrbit service user every time it starts executing a mission and unlocked when it finishes the execution.
+- `waypoints`: Defines tolerances for waypoints, if the pose of the robot is within the tolerated values, assumes that the goal of the waypoints has been reached.
+  - `"distanceTolerance"`: A float value that tells how much distance will be tolerated to indicate that a waypoint was successful
+  - `"angularTolerance"`: A float value that tells how much angle will be tolerated to indicate that a waypoint was successful
+
+### Example
+
+> Mission Tracking complex example
+
+```json
+{
+  "metadata": {
+    "scope": "account",
+    "id": "all"
+  },
+  "apiVersion": "v0.1",
+  "kind": "MissionTracking",
+  "spec": {
+    "processingType": "derived",
+    "attributes": {
+      "stateEvent": [
+        {
+          "type": "mission",
+          "path": "currentTask",
+          "values": ["delivery"]
+        },
+        {
+          "type": "data",
+          "path": "targetRoom",
+          "label": "Room"
+        }
+      ],
+      "navigationStatus": {
+        "type": "state",
+        "acceptBeforeStart": 20
+      },
+      "pathCompletion": {
+        "type": "percent",
+        "acceptAfterEnd": 60
+      }
+    },
+    "missionFields": {
+      "state": {
+        "defaultInitialValue": "planning"
+      }
+    },
+    "stateDefinitions": {
+      "elevator-issue": {
+        "defaultStatus": "warn",
+      }
+    }
+  }
+}
+```
+
+In this example, a json-typed attribute is used for two purposes. Whenever its `currentTask` field
+has value "delivery", this marks the mission start. Then, the value of `targetRoom` field is added
+to the mission metadata. Thus, the config part of this attribute is a two-element array.
+All other attributes contain a single object, as they are mapped to only one mission field.
+
+Each mission initial _state_ is "planning", a user-defined value.
+The missions will last as long as the `currentTask` value is "delivery".
+During that time and up until 20 seconds after it switches to a different value, any value of `navigationStatus` attribute
+will be used as the mission _state_. A user-defined state "elevator-issue" is assigned a "warn"
+status, meaning it will be colored accordingly (yellow) in widgets and reports, and the mission would not
+be considered successful if this is its final state.
+
+Also within the mission duration and one minute after it ends, the value of the `pathCompletion`
+attribute is used as completion percentage.
+
+

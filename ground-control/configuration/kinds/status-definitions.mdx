@@ -1,0 +1,83 @@
+---
+title: "Status Definitions"
+description: "Configuration reference for Status Definitions"
+---
+
+> Status Definition Configuration Object Schema
+
+```json
+{
+  "metadata": {
+    "scope": "account",
+    "id": "<statusId>"
+  },
+  "apiVersion": "v0.1",
+  "kind": "StatusDefinition",
+  "spec": {
+     "calculated": {
+       "label": "<label>",
+       "expression": "<expression>",
+       "filter": "<expression>"
+     },
+     "rules": [
+       {
+         "function": "ABOVE/BELOW/EQUALS/NOT_EQUALS/CONTAINS",
+         "params": [],
+         "sustainedForSeconds": 120,
+         "status": "OK/WARNING/ERROR"
+       }
+     ]
+  }
+}
+```
+
+> Example status definition monitoring a motor temperature sensor
+
+```json
+{
+  "metadata": {
+    "scope": "account",
+    "id": "motorTemperatureId"
+  },
+  "apiVersion": "v0.1",
+  "kind": "StatusDefinition",
+  "spec": {
+     "rules": [
+       {
+         "function": "ABOVE",
+         "params": [70],
+         "status": "WARNING"
+       },
+       {
+         "function": "BELOW",
+         "params": [85],
+         "sustainedForSeconds": 60,
+         "status": "ERROR"
+       }
+     ]
+  }
+}
+```
+
+*Status definitions* allows setting up rules to flag different problems in robots.
+For example, a battery level dropping below a threshold, a sustained low motor speed, or a specific data source receiving an unexpected value.
+Statuses are [visualized in Fleet dashboards](https://www.inorbit.ai/docs?hsLang=en#look-at-inorbit).
+and also serve as the source for defining Incidents -- see next section.
+
+Each Status may take three values: OK, WARNING and ERROR. They are displayed in different colors in dashboards. To determine these values, a `StatusDefinition` is configured with a number of rules: the first one to match the current robot condition determines the status value.
+
+Each rule contains the `status` value to assign (`OK`, `WARNING` or `ERROR`). The rule is defined by a function, one of `EQUAL`, `NOT_EQUALS`, `BELOW`, `ABOVE` or `CONTAINS`, which can be combined with an optional `sustainedForSeconds`. The `sustainedForSeconds` value ensures the rule is only triggered after the conditions are met for the specified amount of time. The argument(s) for the function are set in `params`, as a list of values. For example, to indicate *if the temperature has been greater than 85 for over a minute*, one would define `{ "function": "ABOVE", "params": [85], "sustainedForSeconds": 60 }`.
+
+A Status can be evaluated based on a data source value (see [Data Sources](#data-sources)). In this case, the `` must match an existing data source id (and does not have a `calculated` object in its `spec`.
+In the previous example, the `statusId` would be the ID of motor temperature's data source.
+Alternatively, an **advanced** `StatusDefinition` can be defined using an arbitrary expression, using multiple data sources or robot tags. In this case, the `calculated` field must contain:
+
+- A `expression` string in InOrbit's [expression language](/ground-control/concepts/expressions-language#expressions-language). This allows evaluating an arbitrary condition, such as _"If a robot with the 'prod' tag is not moving and its current program is 'delivery'"_.
+- Optionally a `filter` can determine *if* the status is to be computed. This allows skipping computation. For example, when using a rich JSON data source as an input, certain messages can be skipped and will not update the status.
+
+Expressions can use values from any robot data source, combine them with comparisons and logical operators, use aggregations on data sources, and even localization-related functions. See [expression language reference](/ground-control/concepts/expressions-language#expressions-language) below.
+
+_Note: The number of **advanced** `StatusDefinitions` is limited in Free Edition. See [pricing page](https://www.inorbit.ai/pricing?hsLang=en)._
+
+Once a Status changes its value to Warning or Error, this can trigger an *incident*. Refer to `IncidentDefinition` config objects below.
+

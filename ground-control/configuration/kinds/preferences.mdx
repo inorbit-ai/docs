@@ -1,0 +1,39 @@
+---
+title: "Preferences"
+description: "Configuration reference for Preferences"
+---
+
+```json
+{
+    "kind": "Preferences",
+    "apiVersion": "v0.1",
+    "metadata": {
+        "id": "all",
+        "scope": "account"
+    },
+    "spec": {
+        "navigationWidget": {
+            "panels": {
+              "teleop": false
+            },
+            "actions": ["action1", "action2"]
+        }
+    }
+}
+```
+
+Additionally to their configuration given in Dashboards, some parts of the user interface may
+be adjusted using the `Preferences` kind.
+This also includes global properties that apply to all widgets if a given type.
+And most importantly, `Preferences` can be applied at different scopes ("account", "tag" or "robot")
+so the preference will be applied differently depending on the selected robot.
+
+Currently, only Navigation widget allows setting Preferences. They include:
+
+  * `panels`: An object with panel names that can be hidden. Its keys can be `"teleop"`, `"camera"`, `"gauges"`, `"localization"` and `"background"`.
+  By setting any of these values to `false`, the Navigation widget will not display them.
+  This is useful for example when a robot does not implement a feature or simply teleoperating it is not desired.
+  * `actions`: A list of ids of actions to display in the Navigation toolbar, which allow
+  for quick execution of actions while monitoring the robot. Applying these `Preferences`
+  at the correct scopes, one could only offer actions that apply to a robot type, or robots
+  in a specific location for example.

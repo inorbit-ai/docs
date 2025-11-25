@@ -1,0 +1,80 @@
+---
+title: "KPI Definitions"
+description: "Configuration reference for KPI Definitions"
+---
+
+> KPI Definition Object Example
+
+```yaml
+metadata:
+  scope: account/<ACCOUNT_ID>
+  id: total_area_covered
+apiVersion: v0.1
+kind: KpiDefinition
+spec:
+  label: Total area covered
+  objectType: mission
+  field: data.data_Area Covered
+  aggregation: SUM
+  filters:
+    - field: data.state
+      operator: "="
+      value: "completed"
+---
+apiVersion: v0.1
+kind: KpiDefinition
+metadata:
+  id: active_robots_per_day
+  scope: account
+spec:
+  aggregation: COUNT_DISTINCT
+  field: entityId
+  filters:
+  - field: data.state
+    operator: '='
+    value: completed
+  intervalMinutes: 1440
+  label: Avg Active robots
+  objectType: mission
+  secondAggregation: AVG
+```
+
+The `KpiDefinition` kind allows you to define and configure Key Performance Indicators (KPIs) for your fleet. KPIs are metrics that help you track the performance of your robots over time. They can be used to monitor various aspects of your operations, such as mission success rates, area covered by your robots in missions, or incidents rates.
+
+KPI definitions are only supported at the account level.
+
+The `spec` of a `KpiDefinition` configuration has the following properties:
+
+- `label`: A human-readable label for the KPI, which will be displayed in dashboards.
+- `unit`: (Optional) The unit of measurement for the KPI (e.g., "%", "meters", "seconds").
+- `objectType`: The type of object to aggregate data from. The possible values are `mission` and `incident`.
+- `field`: The specific field of the object to aggregate.
+- `aggregation`: The aggregation function to apply to the field's data. Supported values are: `SUM`, `AVG`, `MIN`, `MAX`, `COUNT`, `COUNT_DISTINCT`.
+- `intervalMinutes`: (Optional) The time interval in minutes over which to aggregate the data.
+- `secondAggregation`: (Optional) A second aggregation function to apply after the first one. Supported values are the same as for `aggregation`.
+- `filters`: (Optional) A list of filters to apply to the data before performing the aggregation. Each filter is an object with the following properties:
+    - `field`: The field to filter on.
+    - `operator`: The comparison operator to use. Supported values are: `=`, `!=`, `>`, `=`, `<=`.
+    - `value`: The value to compare against.
+
+Valid fields for KPI objects are:
+
+- `id`: The ID of the object.
+- `entityId`: The entity ID of the object.
+- `entityType`: The entity type of the object.
+- `type`: The type of the  (e.g. `mission`, `incident`).
+- `startTime`: The start time of the object.
+- `endTime`: The end time of the object.
+- `data.label`: The label of the object.
+- `data.duration`: The duration of the KPI object.
+- `data.estimatedDistance`: The estimated distance covered by the robot between the `startTs` and `endTs` of the KPI object.
+
+For objects of type `mission`, the following fields are also available:
+
+- `data.state`: The state of the mission.
+- `data.status`: The status of the mission.
+- `data.isSuccess`: True if the mission was successful, false otherwise.
+- `data.isSuccessNum`: 1 if the mission was successful, 0 otherwise.
+- `data.incidentsCount`: The number of incidents of the mission.
+- `data.completedPercent`: The percentage of the mission that was completed.
+- `data.data_${mission_data_key}`: The value of the mission data key.

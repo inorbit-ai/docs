@@ -1,0 +1,47 @@
+---
+title: "Robot Camera"
+description: "Configuration reference for Robot Camera"
+---
+
+ > Cameras Configuration Object Schema
+
+```json
+{
+  "kind": "RobotCamera",
+  "apiVersion": "v0.1",
+  "metadata": {
+    "scope": "<scope>",
+    "id": "<cameraId>"
+  },
+  "spec": {
+     "label": "front",
+     "shortLabel": "F",
+     "rosTopic": "usb_cam/image_raw",
+     "width": 320,
+     "height": 240,
+     "rate": 1,
+     "outputEncoding": "rgb8",
+     "quality": 20,
+     "rotation": 0,
+     "mirror": false,
+     "enabled": true
+  }
+}
+```
+
+The RobotCamera kind allows configuring cameras with still images transmitted from robots. This allow users to set and adjust parameters for their camera feeds.
+
+Each camera configuration has the following properties:
+
+- `id`: Identifies the camera.
+- `label`: Label displayed on screen
+- `shortLabel`: Optional short label to replace the default label (normally the first letter of `label`)
+- `rosTopic`: The ROS topic
+- `width`: Integer of width in pixels
+- `height`: Integer of height in pixels
+- `rate`: The number of frames per second
+- `outputEncoding`: Encoding type, default is "rgb8"
+- `quality`: Integer of quality between 0 and 100
+- `rotation`: Rotation of the camera feed in multiples of 90
+- `mirror`: Optional boolean for mirroring image. Default is false
+- `enabled`: Boolean for enabling camera. Default is true

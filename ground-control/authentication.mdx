@@ -1,0 +1,24 @@
+---
+title: "Authentication"
+description: "API keys and authentication for InOrbit APIs and SDKs"
+---
+
+InOrbit uses API keys to authenticate API requests, use of Embeds and calls from the Edge SDK. An API key identifies your account's service user. This key provides security so that no one outside of your account can access your data.
+
+To generate your API Key go to [InOrbit Console](https://console.inorbit.ai) and open the API Key tab. Here you'll be able to create a new API Key for your account.
+
+On this tab you are able to create, rename and delete one or more API Keys.
+
+- To create an API Key, click on the + icon and update the values of the newest row.
+- To delete an API Key, click on the trashcan icon and the key will be removed.
+- To update an API Key, update the values in the editable inputs, the changes will be automatically saved.
+- Click on the eye icon to view the API Key.
+
+With the creation of a new API Key, InOrbit will create a new user named **Service user**. This user will be linked to the newly created API Key and when the key is used, the actions are logged under **Service user**. However, you can change this name at any time by updating the "name" input of a user on the API Key tab in the InOrbit Console.
+
+**Restricting API requests**: To control API access for users in the account, update the role of the user by using the role selector in the API Key tab in the InOrbit Console.
+
+<Warning>
+Keep your API keys secure. Never commit them to version control or expose them in client-side code.
+</Warning>
+

@@ -1,0 +1,34 @@
+---
+title: "Embeds"
+description: "Embed robot-specific UI components in web applications"
+---
+
+InOrbit Embeds allows you to create a dashboard from InOrbit Console and embed it in any application. Leveraging Embeds you can show robot or fleet level information in your applications without having to implement the UI from scratch.
+
+Some example use cases include:
+
+- Dedicated role based experience on a tablet for a Floor Operator
+- White-labeled end-user portal
+- Unattended team dashboard running on a centralized monitor
+- UI running on your robot's physical screen to trigger actions
+
+## Defining an Embed
+
+Embeds are created by defining a dashboard from the Console and then generating the embedding code for it.
+
+To manage your dashboards go to Robot Data → Dashboards. From there you can create and edit dashboards, including setting visibility rules and modifying sections and widgets.
+
+Using the gray plus sign you can add new sections. Each section has a name and scope, that can be robot or fleet.
+
+Using the gray plus sign inside the section you can add widgets from the widgets palette.
+
+Once you have defined the dashboard, you are ready to embed it into your applications.
+
+## Using an Embed in your application
+
+To generate the embedding code, go to [InOrbit Console](https://console.inorbit.ai) > Robot Data tab > Dashboards section and use the "< >" button on the right, near the top.
+
+Clicking this button shows a code fragment that can be used to embed the dashboard into any HTML page.
+
+You can customize the iframe's properties to match your application layout. Remember to replace `YOUR_APP_KEY_HERE` with your InOrbit API Key.
+

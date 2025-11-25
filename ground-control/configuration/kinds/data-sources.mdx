@@ -1,0 +1,129 @@
+---
+title: "Data Sources"
+description: "Configuration reference for Data Sources"
+---
+
+> DataSourceDefinition configuration full schema
+
+```json
+{
+  "metadata": {
+    "scope": "account",
+    "id": "<dataSourceId>"
+  },
+  "apiVersion": "v0.1",
+  "kind": "DataSourceDefinition",
+  "spec": {
+     "label": "",
+     "unit": "",
+     "scale": 1,
+     "type": "",
+     "timeline": {},
+     "source": {
+        "keyValue": {
+          "key": ""
+        },
+        "rosDiagnostics": {
+          "namespace": "",
+          "key": ""
+        },
+        "networkUsage": {
+          "interface": ""
+        },
+        "diskUsage": {
+          "partition": ""
+        },
+        "textFile": {
+          "path": ""
+        },
+        "imageFile": {
+          "path": ""
+        },
+        "derived": {
+          "transform": "",
+          "filter": ""
+        }
+      }
+  }
+}
+```
+
+> DataSourceDefinition example
+
+```json
+{
+  "metadata": {
+    "scope": "account",
+    "id": "<dataSourceId>"
+  },
+  "apiVersion": "v0.1",
+  "kind": "DataSourceDefinition",
+  "spec": {
+    "label": "",
+    "unit": "",
+    "type": "",
+    "timeline": {},
+    "source": {
+      "rosDiagnostics": {
+        "namespace": "/Navigation/Docking",
+        "key": "Docking Status"
+      }
+    }
+  }
+}
+```
+
+
+Configuring `DataSourcesDefinition` objects define which data from a robot is retrieved and
+turned into robot attributes for visualization, defining
+[statuses](#status-definitions) and [incidents](#incident-definitions) for
+monitoring and alerting, etc. Refer to the documentation for the basics on
+[Data Sources](https://www.inorbit.ai/docs#customize-robot).
+
+All Data Sources have a `label`, and optionally a `unit` (for example "m/s" for a data source
+representing a velocity), which are used when displaying data in the app and alerts.
+Optionally, one can define a `type` to force interpreting the value as an `"array"` or a
+`"json"`-encoded object. When not defined, the type is "guessed" from the value received from the
+robot (usually a string, depending on the source): a number if there are digits, a boolean for
+the strings "true" and "false", or left unparsed as a string otherwise.
+
+Values can be scaled using `scale` field, which multiplies the value reported by the robot before
+storing it. This is specially useful for percentage data sources (with `unit: "%"`) which need to
+be in the range [0..1] to be interpreted and displayed properly. If the robot sends these values
+in the range [0..100], then using `scale: 0.01` will scale them so they get displayed as
+percentages.
+
+What defines how the data is captured is the `source` field.
+It can contain only one of several possible keys, for each of the accepted sources:
+
+- `keyValue: { key: "a key" }`: Receives data published in the agent as a
+  key-value pair in the form `"a key=some value"`.
+  The most common mechanism is through a ROS message in topic `/inorbit/custom_data/0`;
+  in this way, multiple data sources can be transmitted through the same topic.
+  Alternatively, key-value pairs can also be received through SDK in non-ROS environments.
+- `rosDiagnostics: { namespace: "a diagnostics path", key: "a key" }`: Captures data published
+  in ROS diagnostics messages, for one specific `namespace` or path, and one `key`.
+- `networkUsage: { interface: "a network interface" }`: Captures the network bandwidth usage
+  of a specific network interface in the computer the agent is running on. Note that by default
+  InOrbit agents already capture an overall network usage and the specific bandwidth used by
+  InOrbit, but in some cases (for example if the overall usage includes intra-cpu traffic such
+  as containers) the usage through a specific network card (wifi, 4G) may be of interest.
+- `diskUsage: { partition: "device path" }`: Represents the total usage (as a fraction: from 0
+  to 1) of a specific volume in the computer the agent is running on. The path corresponds to the
+  device, e.g. `"/dev/hda1"`.
+- `textFile: { path: "file path" }`: Captures the contents of a text file; e.g. a log file, and
+  transmits it as a data source; which can be used as any other robot attribute or visualized
+  in a _Custom Text File_ widget. The file is monitored for changes.
+- `imageFile: { path: "file path" }`: Captures the contents of an image file;
+  transmits it as a data source. The image can later be visualized in a _Custom Image_ widget.
+  The file is monitored for changes.
+- `derived: { transform: "an expression", filter: "an expression" }`. Defines a data source
+  as "derived" from others, by means of the expression `transform` which can use other data
+  source values; for example to select one specific sub-field of a complex JSON object, or to
+  combine multiple data sources into one. An optional `filter` (another expression) can also be
+  given to skip updating the data source when the filter evaluates to `false` (or 0).
+  See the [expression language](/ground-control/concepts/expressions-language#expressions-language) reference.
+
+A `DataSourceDefinition` may also contain a `timeline` field to specify if the data should be stored in a
+time-series database for visualization in different widgets (e.g. Timelines, Event Logs or History).
+If the data is not numeric, `timeline` must contain `fieldType` specifying the type of data to store.

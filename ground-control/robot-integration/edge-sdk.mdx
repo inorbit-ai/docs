@@ -1,0 +1,116 @@
+---
+title: "Edge SDK"
+description: "SDK for connecting robots from intermediary applications"
+---
+
+The Edge SDK can be used to build integrations between third-party or custom applications running on the edge and the InOrbit platform. For example, it can be used to feed data from a fleet manager system into InOrbit, without requiring the installation of software on your individual robots.
+
+Here a custom component acts as a proxy between the fleet manager system and InOrbit cloud using the Edge SDK.
+
+Any data fed into InOrbit can then be used and queried from other components, like InOrbit Control or REST APIs. This SDK allows the publishing of data related to multiple robots, including their connection state, odometry, poses and any custom attributes you'd like to track.
+
+The Edge SDK is distributed two ways. As an [NPM package](https://www.npmjs.com/package/@inorbit/edge-sdk), which can be run in Javascript and Typescript projects, and as a [Python package](https://pypi.org/project/inorbit-edge) which is used in Python programs, such as connectors.
+
+## Installation
+
+For the most up-to-date installation instructions, please visit our Github repos for the [Javascript Edge SDK](https://github.com/inorbit-ai/edge-sdk-javascript-example) or [Python Edge SDK](https://github.com/inorbit-ai/edge-sdk-python). The following example is for Javascript.
+
+```shell
+npm install inorbit@edge-sdk
+```
+
+The Edge SDK can be installed using NPM. This adds the `edge-sdk` package as a dependency of your project.
+
+## Using the SDK
+
+This section explains how to initialize the Edge SDK and publish data to InOrbit. As a prerequisite you should have already installed the npm package and obtained your InOrbit API key.
+
+### Initialization
+
+```javascript
+import { InOrbit } from '@inorbit/edge-sdk';
+
+const sdk = new InOrbit({ appKey: "YOUR_INORBIT_APP_KEY" });
+```
+
+The first step is to import the edge-sdk package. Then initialize the SDK by creating an InOrbit object. The SDK can then be used to publish robot related data to InOrbit.
+
+### Reporting robot connection status
+
+The `sdk` object can be used to report the connection status of each robot to InOrbit. In order to do this, you need to know the IDs of your robots and use the connectRobot and disconnectRobot methods.
+
+```javascript
+const robotId = '12345';
+await sdk.connectRobot({ robotId, name: 'MyRobot' });
+
+// Perform tasks
+
+await sdk.disconnectRobot(robotId);
+```
+
+The code reports the robot with id `12345` as connected and then as disconnected. Note that when a robot is reported as online, you can also optionally report its name.
+
+<Info>
+The robot must be reported as "online" before publishing any data.
+</Info>
+
+### Publishing poses
+
+```javascript
+await sdk.publishPose(robotId, {
+  ts: new Date().getTime(),
+  x: 5,
+  y: 3,
+  yaw: 0,
+  frameId: 'map'
+});
+```
+
+To report a time stamped pose to InOrbit, the publishPose method can be used. The code here reports that the robot is currently at the position `(5, 3)` in the `map` reference frame.
+
+### Publishing odometry
+
+```javascript
+await sdk.publishOdometry(robotId, {
+  tsStart: new Date().getTime(),
+  ts: new Date().getTime(),
+  speed: {
+    linear: 10,
+    angular: 1
+  }
+});
+```
+
+The publishOdometry method can be used to report odometry data to InOrbit. This code reports that the robot is moving with a linear speed of 10 m/s and an angular speed of 1 rad/s.
+
+### Publishing other attributes
+
+```javascript
+const robotId = '12345';
+await sdk.publishCustomDataKV(robotId, {
+  battery: 60,
+  status: 'Idle'
+});
+```
+
+Other custom attributes can also be reported using the publishCustomDataKV method. The code here reports two custom attributes, battery and status.
+
+## Building a Connector
+
+A typical application of the Edge SDK is a program in the structure of a *connector*. A connector is a custom component that connects a third-party system to InOrbit. The open source Python package [inorbit-connector](https://pypi.org/project/inorbit-connector/) provides a framework for building connectors using the Edge SDK. A simple example can be found in the package's [GitHub repository](https://github.com/inorbit-ai/inorbit-connector-python/blob/main/scripts/README.md).
+
+An example of a connector based on `inorbit-connector` is the [SICK Tag-LOC InOrbit Connector](https://github.com/inorbit-ai/sick-tag-loc-connector), which enables real-time location tracking of objects and vehicles.
+
+## Complete Examples
+
+Complete examples about using the Edge SDK to publish data from multiple robots to InOrbit can be found at:
+
+- [Edge SDK Javascript Example on GitHub](https://github.com/inorbit-ai/edge-sdk-javascript-example)
+- [Edge SDK Python Example on GitHub](https://github.com/inorbit-ai/edge-sdk-python/tree/main/inorbit_edge/tests/demo)
+- [Edge SDK InOrbit Connector Python Package Example](https://github.com/inorbit-ai/inorbit-connector-python/blob/main/scripts/example.py)
+- [Example VDA 5050 to InOrbit proxy using Edge SDK](https://github.com/inorbit-ai/vda5050-to-inorbit-proxy)
+
+<Info>
+[Contact us](mailto:support@inorbit.ai) if you need help to use this SDK, integrate it with your software or generate your robot IDs.
+</Info>
+

@@ -1,0 +1,43 @@
+---
+title: "Spatial Annotations"
+description: "Configuration reference for Spatial Annotations"
+---
+
+
+Spatial annotations allow you to define map elements such as waypoints that can be referenced by missions and other features.
+
+- **Scope**: Objects of this kind can only be defined for scope `robot` or `tag`. In the latter
+case, the tag must be an existing location in the account.
+- **Kinds and types**: Use `kind: SpatialAnnotation`. Supported `spec.type` values include `waypoint`, but other types may be added in the future. The example below focuses on `waypoint`.
+
+### Waypoint annotation
+
+> SpatialAnnotation (waypoint) config
+
+```yaml
+apiVersion: v0.1
+kind: SpatialAnnotation
+metadata:
+  id: nw-picking-5
+  scope: tag/${ACCOUNT_ID}/${LOCATION_TAG_ID}
+spec:
+  data:
+    theta: 1.5680526494979858
+    x: -20.71269678140978
+    y: -4.144237022384018
+  frameId: map
+  label: 'Picking station #5'
+  type: waypoint
+```
+
+#### Fields
+
+- `metadata.id`: Identifier for the annotation within the location.
+- `metadata.scope`: Must be `tag//` referencing an existing location tag.
+- `spec.frameId`: Coordinate frame where the annotation is defined (typically `map`).
+- `spec.label`: Human-readable name of the annotation.
+- `spec.type`: Must be `waypoint` for waypoint annotations.
+- `spec.data.x`: X position in meters.
+- `spec.data.y`: Y position in meters.
+- `spec.data.theta`: Heading in radians.
+- `spec.properties` (optional): Arbitrary key/value object for custom metadata.

@@ -3,6 +3,79 @@ title: "Ground Control"
 description: "Developer tools and SDKs for robot integration"
 ---
 
-# Ground Control
+InOrbit is a RobOps platform aimed at resolving common infrastructure needs and integrating into the broader robotics solution. Here you can find a menu of the different options you can choose from including SDKs, APIs and tools.
 
-Hosted platform for robot developers who want to manage their own robots or bundle a fleet manager with their robots for end users.
+## Authentication
+
+All API and SDK access is authenticated with the InOrbit system using an API Key which can be obtained and managed through [InOrbit Console](https://console.inorbit.ai), in the [API Key section](/ground-control/authentication). An API Key is always associated with a service user in your account and its access is managed using role-based access control.
+
+<Card
+  title="Get your API Key"
+  icon="key"
+  href="/ground-control/authentication"
+>
+  Learn how to create and manage API keys for accessing InOrbit services.
+</Card>
+
+## Integrating Applications
+
+These interfaces allow utilizing robot capabilities in other applications. There are various alternatives that are suitable for different types of applications and technologies.
+
+<CardGroup cols={2}>
+  <Card
+    title="REST APIs"
+    icon="code"
+    href="/ground-control/application-integration/rest-apis"
+  >
+    Best suited for integrating robot functionality in custom applications and business workflows.
+  </Card>
+  <Card
+    title="Embeds"
+    icon="layout"
+    href="/ground-control/application-integration/embeds"
+  >
+    Pre-made robot-specific UI components for web applications.
+  </Card>
+  <Card
+    title="Configuration as Code"
+    icon="settings"
+    href="/ground-control/application-integration/configuration-as-code"
+  >
+    Define advanced configuration programmatically with version control.
+  </Card>
+  <Card
+    title="Incident Management"
+    icon="alert-triangle"
+    href="/ground-control/application-integration/incident-management"
+  >
+    Handle and manage robot incidents programmatically.
+  </Card>
+</CardGroup>
+
+## Robot Integration
+
+Connect your robots to the InOrbit platform using SDKs and integration methods.
+
+<CardGroup cols={2}>
+  <Card
+    title="Robot SDK"
+    icon="cpu"
+    href="/ground-control/robot-integration/robot-sdk"
+  >
+    Bidirectional communication between robots and the cloud (C++ and Python).
+  </Card>
+  <Card
+    title="Edge SDK"
+    icon="network"
+    href="/ground-control/robot-integration/edge-sdk"
+  >
+    Connect robots from intermediary applications (JavaScript/TypeScript and Python).
+  </Card>
+  <Card
+    title="Interoperability Standards"
+    icon="link"
+    href="/ground-control/robot-integration/interoperability"
+  >
+    Support for MassRobotics AMR, VDA 5050, and Open-RMF.
+  </Card>
+</CardGroup>

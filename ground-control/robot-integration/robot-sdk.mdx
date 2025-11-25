@@ -1,0 +1,206 @@
+---
+title: "Robot SDK"
+description: "SDK for bidirectional robot-to-cloud communication"
+---
+
+The Robot SDK enables developers to implement bidirectional communication between robots and the cloud. It leverages the **InOrbit Agent Core** that implements the core communication mechanism in an efficient and secure way. Particularly the agent takes care of:
+
+- Adaptive sampling & throttling
+- Connection handling & offline buffering
+- Security / Encryption
+- Scripted actions
+- Video processing
+
+The Robot SDK provides various methods to ease communication between the agent and other software running on your robot, including:
+
+- **Language Bindings**: High-level language-specific APIs that communicate with the agent. Libraries for two languages are available: the [Robot SDK for C++](https://github.com/inorbit-ai/robot-sdk-cpp) and the [Robot SDK for Python](https://github.com/inorbit-ai/robot-sdk-python).
+- **Helper components**: Reduce integration friction with ROS-based robots, by providing zero-code integration mappings from ROS topics.
+
+Software on the robot can communicate with the agent using various mechanisms, depending on the chosen software stack.
+
+## How to integrate with custom code
+
+### C++ Example
+
+```cpp
+#include "robot-sdk-cpp/include/inorbit/inorbit.hpp"
+int main() {
+ // Create an InOrbitSDK object
+ inorbit::InOrbitSDK sdk;
+
+ // Publish custom data
+ sdk.sendKeyValue("battery", 0.56);
+
+ // Publish the pose
+ double location[] = {5, 4, 0};
+ double rotation_quaternion[] = {0, 0, -0.131, 0.991};
+ sdk.sendPose("my_reference_frame", location, rotation_quaternion);
+ return 0;
+}
+```
+
+### Python Example
+
+```python
+from inorbit.robot_sdk import LaserConfig
+from inorbit.robot_sdk.robot import RobotSession
+from math import inf
+
+robot_session = RobotSession()
+
+# Publish sample key-value pairs
+robot_session.publish_key_values({"battery": 0.56})
+
+# Publish a sample pose
+robot_session.publish_pose({"x": 0.0, "y": 1.1, "yaw": 0.0})
+
+# Set configurations parameters for a single lidar
+laser_config = LaserConfig(
+    x=0,
+    y=0,
+    yaw=0,
+    angle=(-0.5, 0.5),
+    range=(2.0, 10),
+    n_points=10,
+)
+robot_session.register_lasers([laser_config])
+
+# Publish readings for a lidar
+lidar = [3.1, 3.3, inf, 5.3, 8.1, inf, 2.0, 5.5, 3.8]
+robot_session.publish_lasers([lidar])
+```
+
+The Robot SDK integrates with both C++ and Python codebases. Available as a C++11 header-only library or a Python package it serves as a wrapper for communicating with the InOrbit Agent Core. The libraries can be downloaded from the [Robot SDK for C++](https://github.com/inorbit-ai/robot-sdk-cpp) or the [Robot SDK for Python](https://github.com/inorbit-ai/robot-sdk-python). Please note that the SDK is designed to work with the InOrbit Agent Core; refer to the Agent Core Installation section for installation instructions.
+
+For more detailed examples, please refer to the corresponding Robot SDK repository.
+
+## Agent Core Installation
+
+To integrate from C++ or Python you must use the InOrbit Agent Core. It can be installed in different ways, including via a [Debian package](https://www.inorbit.ai/docs#debian-installer). For simplicity in this documentation a one-line command that downloads and executes the agent installer is used. After installing the agent you'll be able to start seeing data from your robot, such as CPU usage, when using InOrbit.
+
+As a prerequisite you'll have to fetch your account key to add a robot to InOrbit. You can get the key from the [InOrbit Console](https://console.inorbit.ai) in the "Add Robot" page.
+
+Run the following one-line command on your robot to install the agent, remember to replace `${YOUR_ACCOUNT_KEY}` with the key you obtained in the previous step:
+
+```shell
+curl "https://control.inorbit.ai/liftoff/${YOUR_ACCOUNT_KEY}?variant=core" | sh
+```
+
+Executing the command will trigger the agent installation process, follow its steps to get the agent running on your robot.
+
+After completing the installation, the agent will automatically start and connect to InOrbit. By default the robot name is its "hostname".
+
+To be sure that everything is configured correctly you can try the following command to check that the agent is up and running:
+
+```shell
+curl http://localhost:5000
+```
+
+Executing the above should produce the following output: `"InOrbit Agent API: OK"`.
+
+<Warning>
+If for some reason you don't see your robot connected or reporting data, check the agent logs at `~/.inorbit/local/inorbit_agent.log`. You are welcome to contact our [Support Team](mailto:support@inorbit.ai) if you need additional help fixing the problem.
+</Warning>
+
+You can customize the port and binding address used by the agent by editing `~/.inorbit/local/agent.env.sh` and setting the following variables:
+
+- `INORBIT_AGENT_API_PORT`: Port used by the agent to listen for connections from the SDK, default value is 5000.
+- `INORBIT_AGENT_API_BINDING`: Address used by the agent to listen for connections from the SDK, default value is "localhost".
+
+## Installing the C++ Library
+
+You can use the following command to include the library in your project as a git-submodule:
+
+```shell
+git submodule add https://github.com/inorbit-ai/robot-sdk-cpp.git robot-sdk-cpp
+```
+
+This command will create a new directory named robot-sdk-cpp containing the C++ library.
+
+The [InOrbit Robot SDK C++ Library](https://github.com/inorbit-ai/robot-sdk-cpp) is a header-only C++11 library that encapsulates the communication between C++ programs and the InOrbit agent. It is licensed under the MIT license.
+
+Depending on your preferences, you can add the library to your project in a few different ways. The recommended way, if you are already using Git, is to use git-submodules to include the [library's repository](https://github.com/inorbit-ai/robot-sdk-cpp) in your project. Another option is to just grab the files from the repository and copy them into your project.
+
+Note that if you prefer you can download the library from its repository at [GitHub](https://github.com/inorbit-ai/robot-sdk-cpp).
+
+## Publishing Data from C++
+
+```cpp
+#include "robot-sdk-cpp/include/inorbit/inorbit.hpp"
+int main() {
+  // Create an InOrbitSDK object
+  inorbit::InOrbitSDK sdk;
+  return 0;
+}
+```
+
+All the functionality provided by the SDK library is encapsulated in a class called **`inorbit::InOrbitSDK`**, so the first steps to communicate with the InOrbit agent is to include the library and then create an object of this class.
+
+By default the sdk object will talk to the agent using TCP, targeting localhost on port 5000. These and other parameters can be changed using more verbose versions of the constructor.
+
+```cpp
+InOrbitSDK(const std::string &agent_host, int agent_port, bool log_errors);
+```
+
+Using this constructor, you can set the agent host, port and if errors should be reported on stderr (default is true).
+
+The **sdk** object created in the previous step has a **sendPose** method that you can use to publish poses data from your program. It receives the reference frame, the robot position and its orientation as a quaternion.
+
+<Info>
+Note that InOrbit uses the [Right-hand rule](https://en.wikipedia.org/wiki/Right-hand_rule) to define the axes and rotation ordering, with X representing the forward direction and Y representing a direction towards the left of the robot. The SDK also uses the XYZW notation for quaternions. So, if you are using a different convention for your localization data, you must apply a conversion before calling **sendPose**.
+</Info>
+
+```cpp
+#include "robot-sdk-cpp/include/inorbit/inorbit.hpp"
+int main() {
+ // Create an InOrbitSDK object
+ inorbit::InOrbitSDK sdk;
+
+ // Publish the pose
+ double location[] = {5, 1, 0};
+ double rotation_quaternion[] = {0, 0, 0.383, 0.924};
+ sdk.sendPose("map", location, rotation_quaternion);
+ return 0;
+}
+```
+
+The example above shows how you can publish a pose to InOrbit. The code reports the robot pose as being at `x = 5, y = 1, z = 0` with a yaw of `45 degrees` counterclockwise in the map reference frame.
+
+The **sdk** object also provides a **sendKeyValue** method that you can use to publish almost any data value from your program. You can use this method for different data types, including double, integer and strings.
+
+```cpp
+#include "robot-sdk-cpp/include/inorbit/inorbit.hpp"
+int main() {
+ // Create an InOrbitSDK object
+ inorbit::InOrbitSDK sdk;
+
+ // Publish custom data of different types: string, double, integer
+ sdk.sendKeyValue("battery", 0.56);
+ sdk.sendKeyValue("pending_tasks", 4);
+ sdk.sendKeyValue("serial", "dd2bc73b");
+
+ return 0;
+}
+```
+
+This code publishes the battery level, number of pending tasks and the serial number of the robot. The reported data can be queried using APIs or be visualized from InOrbit Control.
+
+## Integrating with ROS 1
+
+The InOrbit agent includes native support for ROS, using the publish/subscribe communication mechanism to exchange data with other software running on your robot. The agent automatically detects topics about maps, cameras and more. You can fine tune this configuration from [InOrbit Console](https://console.inorbit.ai).
+
+### Publishing Custom Data
+
+```shell
+rostopic pub /inorbit/custom_data/0 std_msgs/String "battery=55"
+rostopic pub /inorbit/custom_data/0 std_msgs/String "status=docked"
+```
+
+The SDK custom data mechanism, allows you to publish telemetry data, static/semi-static robot attributes, and events from your robot to InOrbit.
+
+You can publish any string data to `/inorbit/custom_data/0` to send it to InOrbit. You can easily send different elements by publishing a key-value pair either by writing a custom node or by leveraging InOrbit's configuration-based republisher node.
+
+## Integrating with ROS 2
+
+The InOrbit agent includes support for ROS 2, using the publish/subscribe communication mechanism to exchange data with other software running on your robot.
+

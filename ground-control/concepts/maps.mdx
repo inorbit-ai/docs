@@ -1,0 +1,13 @@
+---
+title: "Maps"
+description: "Spatial representation and navigation"
+---
+
+There is a difference between real world coordinates and image coordinates on a screen. InOrbit represents the map coordinate frame using the [right hand rule](https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates) as the convention for coordinate axes and rotations. This takes inspiration from ROS and a more detailed explanation can be found in [REP-103](https://www.ros.org/reps/rep-0103.html). Specifically, translation is X => forward/backward, Y => left/right, Z => up/down.
+
+The 2D Map representations on InOrbit are a projection of the space looking down from above which means that in 2D, the direction in which the coordinates increase are X => right, Y => Up.
+
+For images, the direction in which the coordinates increase are X => right, Y => down. (0,0) is in the upper left corner.
+
+An image on your computer will most likely display the normal image coordinates system (Y increases as you move to the bottom). Maps on the InOrbit Platform are displayed using world-coordinates, so Y increases as you move to the top. The uploaded image is flipped vertically to accommodate this. Please make sure that the bottom left corner of the image matches the (metadata.x, metadata.y) coordinate of the real world.
+

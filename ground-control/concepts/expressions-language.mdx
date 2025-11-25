@@ -1,0 +1,152 @@
+---
+title: "Expressions Language"
+description: "JavaScript-like language for conditions and calculations"
+---
+
+Certain parts of InOrbit's advanced configuration allow defining values (such as conditions) from a combination of comparisons, boolean logic, and functions using robot's information (data sources, tags, localization data). See for example [StatusDefinitions](/ground-control/configuration/kinds#configuring-status-definitions).
+
+This language will look familiar to anyone versed in programming languages, and closely resembles JavaScript language syntax.
+
+Its very rich expressivity allows defining complex expressions, only limited to the data available about the robot in InOrbit platform. It creates a very powerful tool for expressing robots conditions for each domain's business rules.
+
+## Syntax and Operations
+
+Here we briefly describe its syntax and operations.
+
+- **Constants** includes numbers in decimal notation, strings enclosed in single or double quotes, the boolean values `false` and `true` and `null`.
+- **Arithmetic and logical** operations include `+`, `-`, `*` (multiplication), `/` (division), `%` (remainder), `^` (exponentiation) as well as `not`, `and`, `or` (boolean operators).
+- **Comparison** includes `==`, `!==`, `>=`, `<=`, `>` and `<` (equals, not equals, etc.)
+- All sub-expressions can be **grouped** using parenthesis `(` and `)` to make precedence explicit.
+- **Arrays** (list of values) are accessed through subscript operator `[]`, e.g. `a[3]`. They can be concatenated with `||`.
+- **Functions calls** are denoted using their name, followed by parenthesis with optionally argument values separated by commas. For example, `minValue("battery", 30)`.
+- **Variables** can be assigned with `=` to reuse values; and these assignments are separated using the `;` delimiter. For example `x=3; y=4; sqrt(x*x + y*y)`.
+
+Spaces are optional, operator precedence and associativity follow usual arithmetic conventions. More formally, precedence is as follows:
+
+- `(...)`: grouping
+- `f()`, `a[i]`: Function calls, array indexing (left-associative)
+- `^`: Exponentiation (right-associative)
+- `+`, `-`, `not`, `sqrt` unary operators (full list below)
+- `*`, `/`, `%`: Product, division and remainder
+- `+`, `-`, `||`: Addition and subtraction (arithmetic) and concatenation (strings and lists)
+- `==`, `!=`, `>=`, `<=`, `>`, `<`, `in`: Comparison operators and inclusion operator (`x in a` means "is element `x` included in list `a`)
+- `and`: Logical AND
+- `or`: Logical OR
+- `x ? y : z`: Ternary conditional: if `x` then `y` else `z`.
+- `=`: Variable assignment
+- `;`: Expression separator
+
+## Unary Operators
+
+The unary operators include in addition to `+` and `-` (sign), many algebra and trigonometry functions:
+
+- `abs` (absolute value)
+- `ceil`, `sign`, `round`, `trunc` (sign, rounding and truncation)
+- `sqrt` and `cbrt` (square and cubic root)
+- `ln`, `log10`, `log2` (logarithms)
+- `sin`, `cos`, `tan`, `tanh`, `asin`, `acos`, `atan`, `atanh` (trigonometric functions)
+- `length` (array length)
+
+All of these are unary operators, although its equivalent function syntax is usually found, e.g. `acos(x)`.
+
+## Robot-Specific Functions
+
+Additionally, robot-specific functions allow evaluating conditions on robot-reported data:
+
+### Language Functions
+
+- `get(<value>, <field>, <defaultValue>)`: Given an object, it returns the value of one of its fields. Normally used for robot attributes of type "JSON". If `<value>` is not an object, or it does not contain the given `<field>`, it returns `<defaultValue>` (which is optional, when omitted it is assumed to be `null`).
+
+### Robot Data Functions
+
+- `getValue(<ds>)`: The current value of the robot data source identified by `<ds>`.
+
+- `getValueAgeMs(<ds>)`: The age of the robot data source identified by `<ds>` in milliseconds; defined as the time that has passed since this data source value was last sent by the robot.
+
+- `minValue(<ds>, <secs>)`, `maxValue(<ds>, <secs>)`, `meanValue(<ds>, <secs>)`: Aggregation operators to obtain the minimum (resp. maximum, average) value of the data source identified by `<ds>` during the last N seconds.
+
+- `hasTag(<tag>)`: Determines if a robot contains a tag -- See [Collections](https://www.inorbit.ai/docs?hsLang=en#collections-locations-modes)
+
+- `distinctValues(<ds>, <seconds>)` and `sustainedValue(<ds>, <seconds>)`: Determine all unique values of a given source `<ds>` for the last `<seconds>` time window. The function `distinctValues` returns all these values in a list (see array operators above). The function `sustainedValue` can be used to know if the data source has reported one unique value over that time: in that case it returns this value; otherwise it returns `null`.
+
+<Info>
+Both functions require enabling storage of values history. Refer to `DataSourceDefinition` in [StatusDefinitions](/ground-control/configuration/kinds#configuring-status-definitions).
+</Info>
+
+### Localization Data Functions
+
+- `visitedAreaDiagonal(<seconds>)`: The diagonal length of the smallest bounding box containing all of the robot positions during the last N seconds. It allows determining if the robot is actually moving; beyond its linear or angular distance (e.g. the robot can be moving in circles attempting to go around an obstacle).
+
+- `visitedAreaSide(<seconds>)`: Similar to `visitedAreaDiagonal`, except it reports the largest side of the smallest bounding box containing all of the robot positions during the last N seconds.
+
+- `match(<regularExpression>, <variable>)`: Performs regular expression matching. The result is `null` if there is no match, or a list of strings when matched (which can also be used as "true" value for a boolean expression). This list contains the entire match as first element, and any captured groups as subsequent elements. Regular expressions follow ECMASCRIPT language specification, refer to [this cheatsheet](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet). Character classes, grouping and other regular expression features are supported.
+
+- `inRectangleArea(x0, y0, x1, y1, frameId)`: Returns a boolean value indicating if the robot current pose lies within the rectangle determined by any two opposite corners `(x0, y0)` and `(x1, y1)`. The function is only calculated if the robot reports a pose, and the given `frameId` matches. The last argument `frameId` is optional, and the coordinates would match the robot pose from any coordinate frame (this is not recommended, but it makes testing easier when only one frame is in use). This function can be used to define simple rules based on robots position in a map, such as no-go or exclusion zones.
+
+### Traffic Management Functions
+
+When using [Traffic Management](/ground-control/configuration/kinds#configuring-traffic-management), expressions can use functions to query about the state of `TrafficZone`s.
+
+- `isRobotInZone(<zoneId>, [<locationId>])`: Determines if the _current_ robot (where the expression is being evaluated) is currently inside the zone `zoneId`. This identifier is normally sufficient to identify the zone, which must be defined in the robot's current _location_. Optionally the `locationId` (a tag) can also be provided. As some expressions (e.g. in Mission Definitions or Zone Events) can be evaluated in arbitrary robots, this function can also be used to ask if _any_ robot is currently inside a configured zone.
+
+- `isZoneOccupied(<zoneId>, [<locationId>])`: Tells if there is currently at least one robot in a given zone. The zone is identified in the same way as in `isRobotInZone`. For example, a mission step might `waitUntil` a zone becomes empty (for example to drop some cargo or to move on a narrow area).
+
+## Examples
+
+<Info>
+The following examples assume some data sources and tags exist for the robots; the data source ids are given as example and should be self-explanatory.
+</Info>
+
+**Example:** Determines the maximum value of a "signal strength" data source and takes it logarithmic value. This value could be compared using `ABOVE` or `BELOW` rules in a `StatusDefinition`.
+
+```js
+log10(maxValue('signalStrength', 600))
+```
+
+**Example:** Detect a failed docking attempt. If given as part of a status rule and it is configured with a `{ sustainedForSeconds: 180 }`, it would trigger if the robot has not docked after three minutes of changing its program to `"DOCKING"`
+
+```js
+getValue('currentProgram')=='DOCKING' and not getValue('is_charging')
+```
+
+**Example:** Robot stopped while on a mission. As part of a status rule it triggers if a robot has not left a 2-meter square for three minutes, signaling it is unable to navigate through its path.
+
+```js
+hasTag("prod") and getValue('currentProgram')=="DELIVERY" and visitedAreaSide(180)<2
+```
+
+**Example:** This example expands on the 'DataSourceDefinition' example `"motorTemperatureId"`. The 'StatusDefinition' example below shows how absent motor temperature readings could generate an alert after 120 seconds:
+
+```json
+[
+  {
+    "metadata": {
+      "scope": "account",
+      "id": "motorTemperatureId"
+    },
+    "apiVersion": "v0.1",
+    "kind": "StatusDefinition",
+    "spec": {
+      "calculated": {
+        "expression": "getValueAgeMs(motorTemperatureId)>=120000"
+      },
+      "rules": [
+        {
+          "function": "EQUALS",
+          "params": "true",
+          "status": "WARNING"
+        }
+      ]
+    }
+  }
+]
+```
+
+**Example:** Given an `event` JSON object attribute, if the robot is seeing one of the configured landmarks, this expression would take a `"lobby"` value, if not it default to the `"current_floor"` data source instead. Note that the expression works in multiple lines or a single line.
+
+```js
+event = getValue(event);
+landmarks = event and event.navigation ? event.navigation.visible_landmarks : [];
+("L00" in landmarks) or ("FRONT_DOOR" in landmarks) ? "lobby" : getValue("current_floor")
+```
+

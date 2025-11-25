@@ -55,9 +55,63 @@
         "description": "Developer tools and SDKs for robot integration",
         "tabs": [
           {
-            "tab": "Overview",
+            "tab": "Getting Started",
             "pages": [
-              "ground-control/index"
+              "ground-control/index",
+              "ground-control/authentication"
+            ]
+          },
+          {
+            "tab": "Application Integration",
+            "pages": [
+              "ground-control/application-integration/overview",
+              "ground-control/application-integration/rest-apis",
+              "ground-control/application-integration/embeds",
+              "ground-control/application-integration/configuration-as-code",
+              "ground-control/application-integration/incident-management"
+            ]
+          },
+          {
+            "tab": "Robot Integration",
+            "pages": [
+              "ground-control/robot-integration/overview",
+              "ground-control/robot-integration/robot-sdk",
+              "ground-control/robot-integration/edge-sdk",
+              "ground-control/robot-integration/interoperability"
+            ]
+          },
+          {
+            "tab": "Configuration",
+            "pages": [
+              "ground-control/configuration/overview",
+              "ground-control/configuration/cli",
+              {
+                "group": "Configuration Kinds Reference",
+                "pages": [
+                  "ground-control/configuration/kinds/index",
+                  "ground-control/configuration/kinds/data-sources",
+                  "ground-control/configuration/kinds/status-definitions",
+                  "ground-control/configuration/kinds/incident-definitions",
+                  "ground-control/configuration/kinds/action-definitions",
+                  "ground-control/configuration/kinds/dashboards",
+                  "ground-control/configuration/kinds/preferences",
+                  "ground-control/configuration/kinds/robot-camera",
+                  "ground-control/configuration/kinds/robot-footprint",
+                  "ground-control/configuration/kinds/mission-tracking",
+                  "ground-control/configuration/kinds/mission-definitions",
+                  "ground-control/configuration/kinds/kpi-definitions",
+                  "ground-control/configuration/kinds/spatial-annotations",
+                  "ground-control/configuration/kinds/traffic-management"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Concepts",
+            "pages": [
+              "ground-control/concepts/overview",
+              "ground-control/concepts/expressions-language",
+              "ground-control/concepts/maps"
             ]
           }
         ]

@@ -1,0 +1,33 @@
+---
+title: "Interoperability Standards"
+description: "Support for industry standards and protocols"
+---
+
+This section details the different solutions provided by InOrbit Platform to work with robot interoperability standards, such as [VDA 5050](https://www.vda.de/en/services/Publications/vda-5050-v-1.1.-agv-communication-interface.html) and [MassRobotics AMR interoperability](https://github.com/MassRobotics-AMR/AMR_Interop_Standard). These standards are useful to orchestrate heterogeneous fleets that mix robots from different vendors.
+
+Companies that use robots can leverage InOrbit Platform to connect standards compliant robots to the cloud without having to set up dedicated infrastructure. It's also possible to connect robots that use different standards and orchestrate them in a homogeneous way using InOrbit's UI and/or APIs.
+
+Robot makers can also benefit from InOrbit Platform by using its open source packages to make any robot standard compliant using just configuration files.
+
+## MassRobotics AMR Interoperability
+
+The [MassRobotics AMR Interoperability Standard](https://github.com/MassRobotics-AMR/AMR_Interop_Standard) allows AMRs from different vendors to publish information about their state, location, velocity, health, etc using a well defined set of messages. Data transmission is done over web sockets.
+
+Robots compliant with this standard can be connected to InOrbit without requiring the installation of the InOrbit agent on them. ROS2 based robots can become compliant with the standard using the massrobotics_amr_sender package.
+
+### Connecting robots to InOrbit
+
+Standard compliant robots can be connected to InOrbit without requiring the installation of the InOrbit agent. To do so, you have to configure your robots to point to InOrbit's receiver.
+
+You can find the receiver URL for your account in the Console, under Admin → Interoperability.
+
+The next step is to configure the receiver URL on your robots to start sending data to InOrbit. The details about this step depend on your specific robot model and software.
+
+### Making ROS2 robots compliant with the standard
+
+Using the open source [massrobotics_amr_sender](https://index.ros.org/p/massrobotics_amr_sender/#foxy) ROS package, ROS2 based robots can become compliant with the standard using just configuration files. Check the package documentation for more details and examples.
+
+## VDA 5050
+
+[VDA 5050](https://www.vda.de/en/services/Publications/vda-5050-v-1.1.-agv-communication-interface.html) compliant robots can be connected to InOrbit using the [VDA-5050 to InOrbit Proxy](https://github.com/inorbit-ai/vda5050-to-inorbit-proxy). You can also find some open source tools and code samples to ease the implementation of interoperability standards on the robot side in our public [GitHub organization](https://github.com/inorbit-ai).
+

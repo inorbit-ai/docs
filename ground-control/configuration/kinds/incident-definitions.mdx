@@ -1,0 +1,298 @@
+---
+title: "Incident Definitions"
+description: "Configuration reference for Incident Definitions"
+---
+
+> Incident Definition Configuration Object Schema
+
+```json
+{
+    "kind": "IncidentDefinition",
+    "apiVersion": "v0.1",
+    "metadata": {
+        "id": "string",
+        "scope": "string"
+    },
+    "spec": {
+        "statusId": "string",
+        "label": "string",
+        "warning": {
+            "notificationChannels": [],
+            "autoActions": [],
+            "manualActions": [],
+            "severity": "string"
+        },
+        "error": {
+            "notificationChannels": [],
+            "autoActions": [],
+            "manualActions": [],
+            "severity": "string"
+        },
+        "ok": {
+            "notificationChannels": [],
+            "autoActions": [],
+            "manualActions": [],
+        }
+    }
+}
+```
+
+> Example incident definition: Both at Warning and Error status levels, this incident is notified
+> in the app with an option to run a previously defined action `RunScript-123456`.
+> In the Error the incident is also notified in a Slack channel, and another action is automatically run.
+
+```json
+{
+    "kind": "IncidentDefinition",
+    "apiVersion": "v0.1",
+    "metadata": {
+        "id": "batteryLow",
+        "scope": "account"
+    },
+    "spec": {
+        "statusId": "batteryLow",
+        "label": "My Battery Incident",
+        "warning": {
+            "notificationChannels": ["app"],
+            "autoActions": [],
+            "manualActions": ["RunScript-123456"],
+            "severity": "SEV 2"
+        },
+        "error": {
+            "notificationChannels": ["app", "slack#support"],
+            "autoActions": ["PublishToTopic-7890ABC"],
+            "manualActions": ["RunScript-123456"],
+            "severity": "SEV 0"
+        }
+    }
+}
+```
+
+*Incident definitions* allows setting rules about how and when incidents are triggered and notified based on the configured statuses (see [StatusDefinition](#status-definitions)). They define how these incidents must be notified, their severity levels, associated actions, and more.
+
+Each incident definition has the following main properties:
+
+- `id`: Identifies the definition.
+- `statusId`: The ID of the status definition that triggers this incident.
+- `label`: A descriptive label for the incident.
+- `warning`: Defines rules to handle the case when the associated status is in *"warning"* state.
+Including the notification channels, severity level and associated actions.
+- `error`: Defines rules to handle the case when the associated status is in *"error"* state.
+- `ok`: Defines rules to handle the case when the associated status switches to *"ok"* state.
+
+The alerts for an incident can be routed through different **notification channels**.
+The actual channels depend on the integrations configured in the account.
+Available options are:
+
+- InOrbit application: `app`
+- Slack: `slack#...`
+- Google Chat: `googleChat`
+- OpsGenie: `opsgenie`
+- Webhook: `webhook`
+
+ For example, to be notified in the App as well as in a Slack channel called `#alerts`, the notification channels value would be: `notificationChannels: ["app", "slack#alerts"]`.
+
+ Finally, the valid severity levels are: `SEV 0`, `SEV 1`, `SEV 2`, and `SEV 3`. These do not apply to `ok` states.
+
+When an incident is triggered, there is the option to automatically run **Actions**  on the robot. These are the actions listed (given their IDs) in
+the `autoActions` field. Actions can also be an option for the user to be executed as a response
+to an incident notification (in the app, Slack or any other notification channel).
+For example, an action "Return to dock" could be one possible response from an operator to a low-battery
+incident, after the user determines if there is enough battery left to complete the current task.
+These actions are listed in the `manualActions` field. Refer to the next section on the
+[ActionDefinition](#action-definitions) kind to configure actions.
+Note that the REST API can also be used to get the lists of valid status and actions IDs.
+
+ Find the full specification of the *IncidentDefinition* kind in JSON schema format at [io-config-as-code](https://github.com/inorbit-ai/io-config-as-code/blob/main/schemas/IncidentDefinition.json) repository.
+
+### Advanced Incidents
+
+Combining different status, incidents and actions create a powerful tool for
+monitoring a robot fleet, including notifications through different channels for issue management
+(e.g. OpsGenie, Zendesk) and automation of common operations (e.g. L1 support).
+
+This section includes complex examples that include all these pieces working together.
+
+#### Example: Faulty Dock
+
+> Example to detect a failed docking attempt
+
+```json
+[
+  {
+    "metadata": {
+      "scope": "account",
+      "id": "dockedNotCharging"
+    },
+    "apiVersion": "v0.1",
+    "kind": "StatusDefinition",
+    "spec": {
+      "calculated": {
+        "label": "Charging issues",
+        "expression": "getValue('dsDockedStatus')==1 and not getValue('dsCharging')",
+      },
+      "rules": [
+        {
+          "function": "EQUALS",
+          "params": [true],
+          "status": "WARNING",
+          "sustainedForSeconds": 30,
+        },
+        {
+          "function": "EQUALS",
+          "params": [true],
+          "sustainedForSeconds": 120,
+          "status": "ERROR"
+        }
+      ]
+    }
+  },
+  {
+      "kind": "IncidentDefinition",
+      "apiVersion": "v0.1",
+      "metadata": {
+          "scope": "account",
+          "id": "batteryIncident"
+      },
+      "spec": {
+          "statusId": "dockedNotCharging",
+          "label": "Docked and not charging",
+          "warning": {
+              "notificationChannels": ["app", "slack#incidents", "opsgenie"],
+              "autoActions": ["script-action-retry-dock"],
+              "severity": "SEV 2"
+          },
+          "error": {
+              "notificationChannels": ["app", "slack#support"],
+              "manualActions": ["script-action-retry-dock"],
+              "severity": "SEV 1"
+          }
+      }
+  }
+]
+```
+
+We will assume the account has two data sources configured: `dsDockedStatus`
+(with a numeric value with `1` indicating "successfully docked")
+and `dsCharging` (a boolean value indicating that the main battery receives charging voltage).
+They indicate if the robot is currently docked in its charging port, and if the battery is
+currently charging (receiving actual voltage), respectively. These [Data Sources](#data-sources)
+could be sourced from ROS data, SDK or API calls, etc. -- see reference.
+
+A plausible scenario for robots is that they dock, but there is either a faulty connector in the dock
+or some other electrical problem preventing their batteries from charging (`dsCharging` is `false`).
+
+Each of the data sources' values is not indicator of a problem by themselves, but the combination of
+"docked" and "not charging" is a critical problem, as the robot will eventually run out of battery
+even if operators were around, not noticing is not really charging.
+
+To detect and attempt to the situation, we provide a sample configuration (in the side panel)
+with the following features:
+
+ 1. The defined status `dockedNotCharging` is computed from an expression combining both values `dsDockedStatus` and `dsCharging` with boolean logic.
+    The expression will take the value `true` when the robot reports itself as docked *and* is not charging.
+    See [expressions reference](/ground-control/concepts/expressions-language#expressions-language) for other operators and functions.
+ 2. The `StatusDefinition` contains two rules: it will switch to *WARNING* state after 30 seconds
+    (alerting, but allowing the situation to resolve itself) and turn to *ERROR* state after two minutes.
+ 3. There is also an `IncidentDefinition` defining the notifications for this situation:
+
+    a. On *WARNING* level a notification is only displayed in the app (in case operators are online).
+       Additionally, an action `script-action-retry-dock' (refer to Actions reference) is automatically
+       executed. This action could execute an action to make the robot push itself a bit more into the
+       dock, in case the problem were loose electrical contacts in the dock port.
+
+
+
+    b. On *ERROR* level there are no actions executed, but the alert is propagated to several channels.
+       First, the app notifications is updated. The same alert goes to Slack to a channel called "#incidents",
+       and is also sent to OpsGenie. (Refer to Integrations documentation).
+       All these notifications include a link to jump to the app, directly to this robot's dashbboard
+       (this is a built-in feature).
+       They will additionally have a button to re-try executing the same `script-action-retry-dock`
+       action (which can be executed directly from the Slack message).
+
+Note that if the *WARNING* level had resolved the situation (which is desirable, as the problem
+gets resolved automatically from InOrbit cloud),
+the event is still logged and will be found in the Audit Logs for this robot.
+
+#### Navigation Problems
+
+> Complex example including detecting a robot unable to navigate towards its goal
+
+```json
+[
+  {
+    "metadata": {
+      "scope": "account",
+      "id": "unableToNavigate"
+    },
+    "apiVersion": "v0.1",
+    "kind": "StatusDefinition",
+    "spec": {
+      "calculated": {
+        "expression": "(getValue('dsMission') in ['DELIVERY','RETURN-DOCK']) ? visitedAreaDiagonal(60) : null",
+      },
+      "rules": [
+        {
+          "function": "BELOW",
+          "params": [2],
+          "sustainedForSeconds": 600,
+          "status": "ERROR"
+        }
+      ]
+    }
+  },
+  {
+      "kind": "IncidentDefinition",
+      "apiVersion": "v0.1",
+      "metadata": {
+          "scope": "account",
+          "id": "navigationProblem"
+      },
+      "spec": {
+          "statusId": "unableToNavigate",
+          "label": "Unable to reach destination",
+          "error": {
+              "notificationChannels": ["slack#support", "webhook"],
+              "severity": "SEV 2"
+          }
+      }
+  }
+]
+```
+
+In this example a delivery robot is configured with a data source `dsMission` with string values representing
+the current task type, which could include going to pick up an item, performing delivery tasks, returning to the doc or charging in the dock.
+
+Some of these missions require the robot to autonomously navigate.
+Losing the ability to reach a
+navigation goal is one of the most common causes of problems in a robot -- for whatever cause
+(obstacles in a planned route, doors not opening, wheel malfunctions, etc.).
+
+This situation can be detected by two conditions:
+
+- If the value of `dsMission` includes any of the known mission values, the robot is known to be navigating.
+  In the example we include "DELIVERY" to represent carrying an element to a destination,
+  and "RETURN-DOCK" when navigating back to its dock to recharge.
+  The `.includes()` function determines if the list contains the actual value returned by `getValue()` --
+- The function `visitedAreaSide()` returns an approximation of the area navigated by the robot during
+  the last N seconds (60 seconds in the example).
+
+The two values are combined with a ternary conditional: If the robot is navigating, its value is
+the value of `visitedAreaSide()`; and otherwise it is simply `null` (no need to worry about speed or
+travelled distance if the robot was on its dock, for example).
+
+Refer to [expressions language](/ground-control/concepts/expressions-language#expressions-language) reference for a detailed usage of these and other
+functions in `StatusDefinition` expressions.
+
+The robot might not get to a full stop if it keeps retrying to avoid an obstacle,
+or if its motors or wheels are working too slowly; so using a simpler data source such as
+"linear distance" is not representative of the actual problem.
+
+The `StatusDefinition` rule monitors the robot with plenty of time (five minutes) to get momentarily
+stuck from another nearby robot or to wait for elevators doors to open, for example.
+But once this time is elapsed, it turns into *ERROR* state.
+
+In the *ERROR*, an immediate alert is sent through Slack, and also triggers a webhook call:
+If this is configured in the account, it can be hooked to an internal or third-party API,
+for example to send a SMS to field operators.
