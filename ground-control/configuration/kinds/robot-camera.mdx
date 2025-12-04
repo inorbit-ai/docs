@@ -1,47 +1,86 @@
 ---
 title: "Robot Camera"
-description: "Configuration reference for Robot Camera"
+description: "Configure camera feeds displayed in the InOrbit interface"
 ---
 
- > Cameras Configuration Object Schema
+Robot camera configuration controls how still images from robot cameras are captured and displayed in InOrbit. Each camera is identified by a numeric ID and can have custom settings for resolution, frame rate, and display options.
 
-```json
-{
-  "kind": "RobotCamera",
-  "apiVersion": "v0.1",
-  "metadata": {
-    "scope": "<scope>",
-    "id": "<cameraId>"
-  },
-  "spec": {
-     "label": "front",
-     "shortLabel": "F",
-     "rosTopic": "usb_cam/image_raw",
-     "width": 320,
-     "height": 240,
-     "rate": 1,
-     "outputEncoding": "rgb8",
-     "quality": 20,
-     "rotation": 0,
-     "mirror": false,
-     "enabled": true
-  }
-}
+## When to Use
+
+- **Multiple cameras**: Configure front, rear, or specialized cameras with different settings
+- **Bandwidth optimization**: Adjust resolution and frame rate based on network conditions
+- **Display customization**: Set labels, rotation, and mirroring for proper orientation
+
+## Spec Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Camera identifier. Must be a numeric string (`"0"`, `"1"`, etc.). |
+| `label` | string | No | Display label for this camera. |
+| `shortLabel` | string | No | Short label (max 10 chars) for compact displays. Defaults to first letter of `label`. |
+| `rosTopic` | string | No | ROS topic to subscribe to for camera images. |
+| `width` | number | No | Captured image width in pixels (1-2048). |
+| `height` | number | No | Captured image height in pixels (1-2048). |
+| `rate` | number | No | Frames per second (0-10). |
+| `outputEncoding` | string | No | Image encoding. Default: `"rgb8"`. |
+| `quality` | number | No | JPEG quality (1-100). |
+| `rotation` | number | No | Image rotation in degrees (multiples of 90). |
+| `mirror` | boolean | No | Mirror image horizontally. Default: `false`. |
+| `enabled` | boolean | No | Whether camera is active. Default: `true`. |
+
+## Example
+
+```yaml
+kind: RobotCamera
+apiVersion: v0.1
+metadata:
+  scope: robot/<accountId>/<robotId>
+  id: "0"
+spec:
+  label: "Front Camera"
+  shortLabel: "F"
+  rosTopic: "/usb_cam/image_raw"
+  width: 320
+  height: 240
+  rate: 2
+  outputEncoding: "rgb8"
+  quality: 50
+  rotation: 0
+  mirror: false
+  enabled: true
 ```
 
-The RobotCamera kind allows configuring cameras with still images transmitted from robots. This allow users to set and adjust parameters for their camera feeds.
+## Multiple Cameras Example
 
-Each camera configuration has the following properties:
-
-- `id`: Identifies the camera.
-- `label`: Label displayed on screen
-- `shortLabel`: Optional short label to replace the default label (normally the first letter of `label`)
-- `rosTopic`: The ROS topic
-- `width`: Integer of width in pixels
-- `height`: Integer of height in pixels
-- `rate`: The number of frames per second
-- `outputEncoding`: Encoding type, default is "rgb8"
-- `quality`: Integer of quality between 0 and 100
-- `rotation`: Rotation of the camera feed in multiples of 90
-- `mirror`: Optional boolean for mirroring image. Default is false
-- `enabled`: Boolean for enabling camera. Default is true
+```yaml
+# Front camera - high resolution for navigation
+kind: RobotCamera
+apiVersion: v0.1
+metadata:
+  scope: tag/<accountId>/delivery-robots
+  id: "0"
+spec:
+  label: "Front"
+  shortLabel: "F"
+  rosTopic: "/front_camera/image_raw"
+  width: 640
+  height: 480
+  rate: 5
+  quality: 70
+---
+# Rear camera - lower resolution for monitoring
+kind: RobotCamera
+apiVersion: v0.1
+metadata:
+  scope: tag/<accountId>/delivery-robots
+  id: "1"
+spec:
+  label: "Rear"
+  shortLabel: "R"
+  rosTopic: "/rear_camera/image_raw"
+  width: 320
+  height: 240
+  rate: 1
+  quality: 40
+  rotation: 180
+```

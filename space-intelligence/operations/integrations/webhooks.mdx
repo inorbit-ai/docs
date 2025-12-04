@@ -1,0 +1,253 @@
+---
+title: "Webhook Integration"
+description: "Send InOrbit events to any HTTP endpoint"
+---
+
+InOrbit supports webhooks for integrating with any incident management platform or internal system. When incidents occur, InOrbit sends HTTP POST requests to your webhook URL.
+
+## How It Works
+
+```
+InOrbit Incident → HTTP POST → Your Webhook Endpoint
+                                      ↓
+                              Your System Processes
+```
+
+## Setting Up Webhooks
+
+### Step 1: Verify Your Endpoint
+
+Before InOrbit sends events, it verifies that you control the webhook URL:
+
+1. Go to **Settings** → **Admin** → **Integrations**
+2. Enable **Webhooks**
+3. Enter your webhook URL
+4. InOrbit sends a GET request with header `X-InOrbit-Key` containing an API key
+5. Your server must respond with:
+   - Status code: `200`
+   - Body: The API key value that was sent
+
+Example verification handler:
+
+```javascript
+app.get('/webhook', (req, res) => {
+  const key = req.headers['x-inorbit-key'];
+  res.status(200).send(key);
+});
+```
+
+### Step 2: Implement POST Handler
+
+Once verified, InOrbit sends incident events as POST requests:
+
+```javascript
+app.post('/webhook', (req, res) => {
+  const event = req.body;
+  
+  console.log('Received incident:', event.alertId);
+  console.log('Robot:', event.entity.name);
+  console.log('Status:', event.status);
+  
+  // Process the event...
+  
+  res.status(200).send('OK');
+});
+```
+
+## Webhook Payload
+
+Each webhook event contains:
+
+```json
+{
+  "alertId": "abc123",
+  "entity": {
+    "id": "robot-456",
+    "type": "robot",
+    "name": "delivery-bot-1"
+  },
+  "message": "Low Battery Warning",
+  "description": "Battery level dropped below 15%",
+  "actions": ["acknowledge", "resolve"],
+  "componentId": "battery-monitor",
+  "status": "new",
+  "ts": 1640173104711,
+  "priority": "warning"
+}
+```
+
+### Payload Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `alertId` | string | Unique incident identifier |
+| `entity.id` | string | Robot ID |
+| `entity.type` | string | Entity type (usually "robot") |
+| `entity.name` | string | Robot display name |
+| `message` | string | Short incident message |
+| `description` | string | Detailed description |
+| `actions` | array | Available actions |
+| `componentId` | string | Source component |
+| `status` | string | "new" or "resolved" |
+| `ts` | number | Timestamp (milliseconds) |
+| `priority` | string | Severity level |
+
+## Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `new` | Incident just triggered |
+| `resolved` | Incident was resolved |
+
+## Priority Values
+
+| Priority | Meaning |
+|----------|---------|
+| `critical` | Immediate attention required |
+| `error` | Something is wrong |
+| `warning` | May need attention |
+| `info` | Informational |
+
+## Configuring Incident Channels
+
+To send specific incidents to your webhook:
+
+1. Go to **Settings** → **Incidents**
+2. Edit an incident definition
+3. Select **Webhook** as the alert channel
+4. Save
+
+## Example Integrations
+
+### Slack
+
+```javascript
+app.post('/inorbit-webhook', async (req, res) => {
+  const event = req.body;
+  
+  await fetch(SLACK_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: `🤖 ${event.entity.name}: ${event.message}`,
+      attachments: [{
+        color: event.priority === 'critical' ? 'danger' : 'warning',
+        fields: [
+          { title: 'Status', value: event.status, short: true },
+          { title: 'Priority', value: event.priority, short: true }
+        ]
+      }]
+    })
+  });
+  
+  res.status(200).send('OK');
+});
+```
+
+### PagerDuty
+
+```javascript
+app.post('/inorbit-webhook', async (req, res) => {
+  const event = req.body;
+  
+  await fetch('https://events.pagerduty.com/v2/enqueue', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      routing_key: PAGERDUTY_ROUTING_KEY,
+      event_action: event.status === 'new' ? 'trigger' : 'resolve',
+      dedup_key: event.alertId,
+      payload: {
+        summary: `${event.entity.name}: ${event.message}`,
+        severity: mapPriority(event.priority),
+        source: 'InOrbit',
+        custom_details: event
+      }
+    })
+  });
+  
+  res.status(200).send('OK');
+});
+```
+
+### Custom Database
+
+```javascript
+app.post('/inorbit-webhook', async (req, res) => {
+  const event = req.body;
+  
+  await db.incidents.insert({
+    external_id: event.alertId,
+    robot_id: event.entity.id,
+    robot_name: event.entity.name,
+    message: event.message,
+    priority: event.priority,
+    status: event.status,
+    timestamp: new Date(event.ts),
+    raw_payload: event
+  });
+  
+  res.status(200).send('OK');
+});
+```
+
+## Security
+
+### Verify Requests
+
+To ensure requests come from InOrbit, you can:
+
+1. Check the source IP (contact support for IP list)
+2. Use a secret token in the URL path
+3. Implement HMAC signature verification (contact support)
+
+### HTTPS Required
+
+Always use HTTPS for webhook endpoints to protect data in transit.
+
+## Error Handling
+
+InOrbit expects a `200` response. If your endpoint returns an error:
+- InOrbit will retry with exponential backoff
+- After multiple failures, the webhook may be disabled
+- Check the integration logs in Settings
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Respond quickly">
+    Return 200 immediately, process asynchronously if needed. Slow responses may timeout.
+  </Accordion>
+  
+  <Accordion title="Handle duplicates">
+    Use alertId to deduplicate. You may receive the same event multiple times.
+  </Accordion>
+  
+  <Accordion title="Log everything">
+    Log webhook payloads for debugging integration issues.
+  </Accordion>
+  
+  <Accordion title="Monitor your endpoint">
+    Set up monitoring for your webhook endpoint availability.
+  </Accordion>
+</AccordionGroup>
+
+## REST API
+
+You can also manage incidents programmatically:
+
+<Card title="REST APIs" icon="code" href="/ground-control/application-integration/rest-apis">
+  Create and manage incidents via REST API.
+</Card>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Incident Management" icon="bell" href="/space-intelligence/operations/incident-management">
+    Overview of incident management.
+  </Card>
+  <Card title="Opsgenie" icon="bell" href="/space-intelligence/operations/integrations/opsgenie">
+    Pre-built Opsgenie integration.
+  </Card>
+</CardGroup>
+

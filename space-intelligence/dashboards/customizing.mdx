@@ -1,0 +1,225 @@
+---
+title: "Customizing Dashboards"
+description: "Create and modify dashboards to fit your team's needs"
+---
+
+InOrbit's dashboards are fully customizable. You can modify existing dashboards or create entirely new ones tailored to your team's specific workflows.
+
+<Note>
+  Dashboard customization requires **Owner** or **Administrator** role. Available in **Standard** and **Enterprise** editions.
+</Note>
+
+## Editing Existing Dashboards
+
+### Enter Edit Mode
+
+1. Navigate to the dashboard you want to modify
+2. Click the **Edit** icon (pencil) in the dashboard header
+3. The dashboard enters edit mode with a highlighted border
+
+### Modify Widgets
+
+In edit mode, you can:
+
+- **Move widgets** - Drag by the header to reposition
+- **Resize widgets** - Drag the corners or edges
+- **Configure widgets** - Click the gear icon for settings
+- **Remove widgets** - Click the X to delete
+
+### Widget Settings
+
+Each widget type has specific configuration options:
+
+<Tabs>
+  <Tab title="Timeline">
+    - Data source selection
+    - Time range default
+    - Y-axis scale
+    - Line colors
+    - Aggregation method
+  </Tab>
+  
+  <Tab title="Map">
+    - Default location/area
+    - Zoom level
+    - Visible layers (zones, waypoints, paths)
+    - Robot icon style
+    - Trail length
+  </Tab>
+  
+  <Tab title="Vitals">
+    - Metrics to display
+    - Threshold values
+    - Display format (gauge, bar, number)
+    - Alert indicators
+  </Tab>
+  
+  <Tab title="Actions">
+    - Available actions
+    - Confirmation requirements
+    - Button layout
+    - Role restrictions
+  </Tab>
+</Tabs>
+
+### Save Changes
+
+1. Click **Save** to apply changes
+2. Or **Cancel** to discard changes
+3. Changes are immediately visible to users with access
+
+## Adding Widgets
+
+### Widget Catalog
+
+Click **Add Widget** to see available widget types:
+
+| Category | Widgets |
+|----------|---------|
+| **Status** | Vitals, Modes & Tags, Fleet Status, Connection Status |
+| **Visualization** | Timeline, Map, Camera, KPI Indicators |
+| **Data** | Robot Log, Audit Log, Key/Value Sources |
+| **Actions** | Robot Actions, Navigation Controls |
+| **Incidents** | Incident Timeline, Active Incidents |
+| **Mission** | Mission Status, Mission History |
+
+### Configure New Widget
+
+1. Select widget type from catalog
+2. Configure data source and display options
+3. Set size and position
+4. Save the dashboard
+
+## Creating New Dashboards
+
+### From Scratch
+
+1. Go to **Settings** → **Dashboards**
+2. Click **Create Dashboard**
+3. Enter dashboard details:
+   - **Name** - Display name
+   - **Description** - Purpose of this dashboard
+   - **Icon** - Optional icon
+4. Add widgets as needed
+5. Configure layout
+6. Set permissions
+7. Save
+
+### Duplicate Existing
+
+<Tip>
+  Duplicating is often faster than starting from scratch.
+</Tip>
+
+1. Go to **Settings** → **Dashboards**
+2. Find the dashboard to duplicate
+3. Click **Duplicate**
+4. Rename and modify as needed
+5. Save
+
+## Dashboard Permissions
+
+Control who can access each dashboard:
+
+### Visibility Settings
+
+| Setting | Effect |
+|---------|--------|
+| **All Users** | Everyone can see this dashboard |
+| **Specific Roles** | Only selected roles can access |
+| **Hidden** | Not shown in navigation (accessible by direct link) |
+
+### Role-Based Access
+
+Assign dashboards to specific roles:
+
+```
+Operator Dashboard
+├── Viewer: No access
+├── Operator: Read-only
+├── Manager: Read-only
+├── Engineer: Read + Edit
+└── Admin: Full access
+```
+
+### Default Dashboard
+
+Set which dashboard opens by default for each role:
+1. Go to **Settings** → **User Roles**
+2. Edit a role
+3. Select **Default Dashboard**
+4. Save
+
+## Dashboard Organization
+
+### Navigation Order
+
+Reorder dashboards in the navigation:
+1. Go to **Settings** → **Dashboards**
+2. Drag dashboards to reorder
+3. Save order
+
+### Dashboard Groups
+
+Organize dashboards into logical groups:
+- **Operations** - Fleet, Robot, Navigation
+- **Configuration** - Locations, Settings
+- **Analytics** - KPIs, Reports
+
+## Responsive Layout
+
+Dashboards adapt to screen size:
+- **Desktop** - Full grid layout
+- **Tablet** - Adjusted columns
+- **Mobile** - Single column stack
+
+<Info>
+  Test your dashboard on different screen sizes to ensure widgets display correctly.
+</Info>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Design for the user">
+    Think about what the dashboard's target users need to accomplish. Don't add widgets "just in case."
+  </Accordion>
+  
+  <Accordion title="Use consistent layouts">
+    Keep similar information in similar positions across dashboards for familiarity.
+  </Accordion>
+  
+  <Accordion title="Prioritize important data">
+    Put critical information in the top-left where users look first.
+  </Accordion>
+  
+  <Accordion title="Test with real data">
+    Review dashboards with actual robot data to ensure they're useful.
+  </Accordion>
+  
+  <Accordion title="Gather feedback">
+    Ask users what's missing or confusing, then iterate.
+  </Accordion>
+</AccordionGroup>
+
+## Dashboard Templates
+
+InOrbit provides templates for common use cases:
+
+- **Operator View** - Simplified status and actions
+- **Manager View** - KPIs and fleet overview
+- **Technician View** - Diagnostics and logs
+- **Executive View** - High-level metrics
+
+Contact support@inorbit.ai for custom template creation.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="User Roles" icon="users" href="/space-intelligence/getting-started/user-roles">
+    Understanding role-based permissions.
+  </Card>
+  <Card title="Dashboard Configuration" icon="wrench" href="/ground-control/configuration/kinds/dashboards">
+    Advanced dashboard configuration via code.
+  </Card>
+</CardGroup>
+

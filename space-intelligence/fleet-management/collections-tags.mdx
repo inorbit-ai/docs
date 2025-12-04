@@ -1,0 +1,169 @@
+---
+title: "Collections & Tags"
+description: "Organize your fleet with collections and tags"
+---
+
+Collections and tags help you organize and filter your robot fleet. They're essential for managing robots at scale.
+
+## Collections
+
+Collections are static groups of robots. A robot can belong to multiple collections.
+
+### Creating Collections
+
+1. Go to **Settings** → **Collections**
+2. Click **Create Collection**
+3. Enter collection details:
+   - **Name** - Unique identifier
+   - **Description** - Purpose of this collection
+   - **Color** - Visual indicator (optional)
+4. Add robots to the collection
+5. Save
+
+### Use Cases for Collections
+
+| Collection Type | Example | Purpose |
+|-----------------|---------|---------|
+| **By Function** | "Delivery Bots", "Cleaning Bots" | Group by robot purpose |
+| **By Location** | "Building A", "Floor 2" | Group by physical area |
+| **By Customer** | "Acme Corp", "TechCo" | Multi-tenant deployments |
+| **By Shift** | "Day Shift", "Night Shift" | Time-based operations |
+| **By Status** | "Production", "Testing" | Deployment stage |
+
+### Managing Collections
+
+**Add robots to a collection:**
+1. Open the collection in Settings
+2. Click **Add Robots**
+3. Select robots from the list
+4. Save
+
+**Remove robots:**
+1. Open the collection
+2. Find the robot
+3. Click the remove icon
+4. Save
+
+**Bulk operations:**
+- Select multiple robots in Fleet view
+- Use the bulk action menu
+- Choose "Add to Collection"
+
+### Using Collections in Dashboards
+
+Filter any dashboard by collection:
+1. Look for the **Collection** dropdown (usually top-left)
+2. Select a collection
+3. Dashboard shows only robots in that collection
+
+<Tip>
+  Save filtered views as bookmarks for quick access to specific collections.
+</Tip>
+
+## Tags
+
+Tags are flexible labels that can be applied to robots. Unlike collections, tags can be:
+- Applied dynamically via API
+- Changed based on robot state
+- Used in automation rules
+
+### Creating Tags
+
+Tags are created when you first apply them to a robot:
+1. Open a robot's settings or Robot dashboard
+2. Find the **Tags** section
+3. Type a new tag name
+4. Press Enter to create and apply
+
+Or create tags in advance:
+1. Go to **Settings** → **Tags**
+2. Click **Create Tag**
+3. Enter name and optional color
+4. Save
+
+### Tag Naming Conventions
+
+Use consistent naming for easier management:
+
+```
+# Good
+maintenance-due
+high-priority
+needs-calibration
+
+# Avoid
+Maintenance Due (spaces)
+HighPriority (inconsistent case)
+temp123 (unclear meaning)
+```
+
+### Dynamic Tagging via API
+
+Tags can be applied/removed programmatically:
+
+```bash
+# Add tag via API
+curl -X POST https://api.inorbit.ai/robots/{robotId}/tags \
+  -H "x-auth-inorbit-app-key: YOUR_KEY" \
+  -d '{"tag": "maintenance-due"}'
+
+# Remove tag
+curl -X DELETE https://api.inorbit.ai/robots/{robotId}/tags/maintenance-due \
+  -H "x-auth-inorbit-app-key: YOUR_KEY"
+```
+
+### Using Tags in Filters
+
+Filter dashboards and reports by tags:
+- Fleet dashboard → Tag filter
+- Reports → Filter by tag
+- Incident rules → Apply to tagged robots
+
+### Tags in Automation
+
+Use tags to trigger workflows:
+- "When robot is tagged `low-battery`, alert operator"
+- "When `high-priority` tag is present, prioritize in queue"
+
+## Collections vs Tags
+
+| Aspect | Collections | Tags |
+|--------|-------------|------|
+| **Membership** | Static (manual changes) | Dynamic (can change via API) |
+| **Purpose** | Organizational hierarchy | Flexible categorization |
+| **Multiple** | Robot in multiple collections | Robot has multiple tags |
+| **Visibility** | Dropdown in dashboards | Filter/search |
+| **Use case** | "This robot belongs to Team A" | "This robot needs maintenance" |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use collections for structure">
+    Collections should reflect your organizational structure—locations, teams, or functions that don't change often.
+  </Accordion>
+  
+  <Accordion title="Use tags for state">
+    Tags work well for temporary or changing states like "needs-attention", "new-firmware", or "testing".
+  </Accordion>
+  
+  <Accordion title="Be consistent">
+    Establish naming conventions and document them. Inconsistent naming leads to confusion.
+  </Accordion>
+  
+  <Accordion title="Don't over-tag">
+    Too many tags become meaningless. Keep tags purposeful.
+  </Accordion>
+  
+  <Accordion title="Review periodically">
+    Audit collections and tags regularly. Remove unused ones.
+  </Accordion>
+</AccordionGroup>
+
+## API Reference
+
+<CardGroup cols={2}>
+  <Card title="REST APIs" icon="code" href="/ground-control/application-integration/rest-apis">
+    Create and manage collections and tags programmatically.
+  </Card>
+</CardGroup>
+

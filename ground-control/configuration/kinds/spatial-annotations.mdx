@@ -1,43 +1,153 @@
 ---
 title: "Spatial Annotations"
-description: "Configuration reference for Spatial Annotations"
+description: "Define map elements such as waypoints that missions can reference"
 ---
 
+Spatial annotations define named locations on maps that can be referenced by missions, expressions, and other features. The most common use is defining waypoints—specific positions robots can navigate to.
 
-Spatial annotations allow you to define map elements such as waypoints that can be referenced by missions and other features.
+## When to Use
 
-- **Scope**: Objects of this kind can only be defined for scope `robot` or `tag`. In the latter
-case, the tag must be an existing location in the account.
-- **Kinds and types**: Use `kind: SpatialAnnotation`. Supported `spec.type` values include `waypoint`, but other types may be added in the future. The example below focuses on `waypoint`.
+- **Named waypoints**: Define docking stations, pickup points, or delivery locations
+- **Mission integration**: Reference waypoints by name in mission definitions instead of raw coordinates
+- **Custom metadata**: Attach properties like zone, priority, or category to locations
 
-### Waypoint annotation
+## Scope
 
-> SpatialAnnotation (waypoint) config
+Spatial annotations can only be defined for `robot` or `tag` scopes. For tags, it must be an existing location tag in the account.
 
 ```yaml
-apiVersion: v0.1
-kind: SpatialAnnotation
-metadata:
-  id: nw-picking-5
-  scope: tag/${ACCOUNT_ID}/${LOCATION_TAG_ID}
-spec:
-  data:
-    theta: 1.5680526494979858
-    x: -20.71269678140978
-    y: -4.144237022384018
-  frameId: map
-  label: 'Picking station #5'
-  type: waypoint
+# Location-level annotation
+scope: tag/<accountId>/<locationTagId>
+
+# Robot-level annotation
+scope: robot/<accountId>/<robotId>
 ```
 
-#### Fields
+## Spec Fields
 
-- `metadata.id`: Identifier for the annotation within the location.
-- `metadata.scope`: Must be `tag//` referencing an existing location tag.
-- `spec.frameId`: Coordinate frame where the annotation is defined (typically `map`).
-- `spec.label`: Human-readable name of the annotation.
-- `spec.type`: Must be `waypoint` for waypoint annotations.
-- `spec.data.x`: X position in meters.
-- `spec.data.y`: Y position in meters.
-- `spec.data.theta`: Heading in radians.
-- `spec.properties` (optional): Arbitrary key/value object for custom metadata.
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `frameId` | string | Yes | Coordinate frame (typically `"map"`). |
+| `label` | string | Yes | Human-readable name. |
+| `type` | string | Yes | Annotation type. Currently `"waypoint"` is supported. |
+| `data` | object | No | Type-specific data (see below). |
+| `properties` | object | No | Arbitrary key/value metadata. |
+
+### Waypoint Data
+
+For `type: waypoint`, the `data` object contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `x` | number | X position in meters. |
+| `y` | number | Y position in meters. |
+| `theta` | number | Heading in radians. |
+
+## Examples
+
+### Simple Waypoint
+
+```yaml
+kind: SpatialAnnotation
+apiVersion: v0.1
+metadata:
+  id: "dock-station-1"
+  scope: tag/<accountId>/<locationTagId>
+spec:
+  frameId: "map"
+  label: "Dock Station 1"
+  type: "waypoint"
+  data:
+    x: 5.2
+    y: -3.1
+    theta: 1.57
+```
+
+### Waypoint with Properties
+
+```yaml
+kind: SpatialAnnotation
+apiVersion: v0.1
+metadata:
+  id: "nw-picking-5"
+  scope: tag/<accountId>/<locationTagId>
+spec:
+  frameId: "map"
+  label: "Picking Station #5"
+  type: "waypoint"
+  data:
+    x: -20.71
+    y: -4.14
+    theta: 1.57
+  properties:
+    zone: "northwest"
+    priority: "high"
+    stationType: "picking"
+```
+
+### Multiple Waypoints for a Location
+
+```yaml
+# Dock
+kind: SpatialAnnotation
+apiVersion: v0.1
+metadata:
+  id: "dock"
+  scope: tag/<accountId>/warehouse-a
+spec:
+  frameId: "map"
+  label: "Home Dock"
+  type: "waypoint"
+  data:
+    x: 0.0
+    y: 0.0
+    theta: 0.0
+---
+# Loading bay
+kind: SpatialAnnotation
+apiVersion: v0.1
+metadata:
+  id: "loading-bay"
+  scope: tag/<accountId>/warehouse-a
+spec:
+  frameId: "map"
+  label: "Loading Bay"
+  type: "waypoint"
+  data:
+    x: 15.5
+    y: 8.2
+    theta: 3.14
+---
+# Exit point
+kind: SpatialAnnotation
+apiVersion: v0.1
+metadata:
+  id: "exit"
+  scope: tag/<accountId>/warehouse-a
+spec:
+  frameId: "map"
+  label: "Exit Point"
+  type: "waypoint"
+  data:
+    x: 25.0
+    y: 0.0
+    theta: 0.0
+```
+
+## Using Waypoints in Missions
+
+Reference waypoints by their `id` in mission definitions:
+
+```yaml
+# In MissionDefinition
+steps:
+  - label: "Go to dock"
+    waypoint: "dock"  # References SpatialAnnotation id
+  - label: "Go to loading bay"
+    waypoint: "loading-bay"
+```
+
+## Related Documentation
+
+- [Mission Definitions](/ground-control/configuration/kinds/mission-definitions) — Use waypoints in mission steps
+- [Maps](/ground-control/concepts/maps) — Coordinate systems and frames

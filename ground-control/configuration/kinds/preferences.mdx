@@ -1,39 +1,99 @@
 ---
 title: "Preferences"
-description: "Configuration reference for Preferences"
+description: "Configure UI defaults and widget behavior settings"
 ---
 
-```json
-{
-    "kind": "Preferences",
-    "apiVersion": "v0.1",
-    "metadata": {
-        "id": "all",
-        "scope": "account"
-    },
-    "spec": {
-        "navigationWidget": {
-            "panels": {
-              "teleop": false
-            },
-            "actions": ["action1", "action2"]
-        }
-    }
-}
+Preferences control user interface elements that aren't covered by Dashboard configurations. They define global properties for specific widget types and can be applied at different scopes to customize the experience per robot type.
+
+Unlike most configuration kinds, `Preferences` is a **global config**—only one per scope. The only accepted `id` value is `"all"`.
+
+## When to Use
+
+- **Hide unused features**: Disable teleop for robots that don't support it
+- **Quick actions**: Add frequently-used actions to the Navigation toolbar
+- **Multi-map support**: Configure which map topics to display for multi-floor navigation
+
+## Scope Inheritance
+
+Preferences follow scope inheritance: robot → tag → account. A preference set at the robot level overrides tag-level, which overrides account-level.
+
+```yaml
+# Account-level: default for all robots
+scope: account/<accountId>
+
+# Tag-level: override for specific robot types
+scope: tag/<accountId>/cleaning-robots
+
+# Robot-level: override for a specific robot
+scope: robot/<accountId>/robot-001
 ```
 
-Additionally to their configuration given in Dashboards, some parts of the user interface may
-be adjusted using the `Preferences` kind.
-This also includes global properties that apply to all widgets if a given type.
-And most importantly, `Preferences` can be applied at different scopes ("account", "tag" or "robot")
-so the preference will be applied differently depending on the selected robot.
+## Spec Fields
 
-Currently, only Navigation widget allows setting Preferences. They include:
+### navigationWidget
 
-  * `panels`: An object with panel names that can be hidden. Its keys can be `"teleop"`, `"camera"`, `"gauges"`, `"localization"` and `"background"`.
-  By setting any of these values to `false`, the Navigation widget will not display them.
-  This is useful for example when a robot does not implement a feature or simply teleoperating it is not desired.
-  * `actions`: A list of ids of actions to display in the Navigation toolbar, which allow
-  for quick execution of actions while monitoring the robot. Applying these `Preferences`
-  at the correct scopes, one could only offer actions that apply to a robot type, or robots
-  in a specific location for example.
+Configuration for the Navigation widget.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `panels` | object | Panel visibility. Keys: `"teleop"`, `"camera"`, `"gauges"`. Set to `false` to hide. |
+| `actions` | array | Action IDs to show in the Navigation toolbar. |
+| `maps` | array | ROS map topics available for switching (e.g., `/map`, `/costmap`). |
+
+## Examples
+
+### Basic Configuration
+
+```yaml
+kind: Preferences
+apiVersion: v0.1
+metadata:
+  id: "all"
+  scope: account/<accountId>
+spec:
+  navigationWidget:
+    panels:
+      teleop: true
+      camera: true
+      gauges: true
+    actions:
+      - "emergency-stop"
+      - "return-to-dock"
+    maps:
+      - "/map"
+      - "/costmap"
+```
+
+### Hide Teleop for Non-Teleoperatable Robots
+
+```yaml
+kind: Preferences
+apiVersion: v0.1
+metadata:
+  id: "all"
+  scope: tag/<accountId>/autonomous-only
+spec:
+  navigationWidget:
+    panels:
+      teleop: false
+```
+
+### Cleaning Robots with Custom Actions
+
+```yaml
+kind: Preferences
+apiVersion: v0.1
+metadata:
+  id: "all"
+  scope: tag/<accountId>/cleaning-robots
+spec:
+  navigationWidget:
+    panels:
+      teleop: false
+      camera: true
+      gauges: true
+    actions:
+      - "start-cleaning"
+      - "stop-cleaning"
+      - "return-to-dock"
+```

@@ -1,0 +1,235 @@
+---
+title: "Locations & Areas"
+description: "Set up your physical sites and manage multi-location fleets"
+---
+
+Locations represent the physical sites where your robots operate. Each location can have multiple areas (floors, sections, buildings) with their own maps and configurations.
+
+## Understanding the Hierarchy
+
+```
+Organization
+├── Location: "Austin Warehouse"
+│   ├── Area: "Floor 1"
+│   │   ├── Map: floor1-map.png
+│   │   ├── Zones: Shipping, Receiving, Restricted
+│   │   └── Waypoints: Dock-1, Dock-2, Charging-A
+│   ├── Area: "Floor 2"
+│   │   └── Map: floor2-map.png
+│   └── Area: "Loading Dock"
+│       └── Map: dock-map.png
+│
+└── Location: "Boston Store"
+    ├── Area: "Sales Floor"
+    └── Area: "Back Room"
+```
+
+## Setting Up Locations
+
+### Create a Location
+
+1. Go to the **Locations** dashboard
+2. Click **Add Location**
+3. Enter location details:
+   - **Name** - Unique, descriptive name
+   - **Address** - Physical address (optional)
+   - **Time Zone** - For accurate timestamps
+   - **Description** - Additional context
+4. Save
+
+### Add Areas to a Location
+
+1. Click on a location to open the editor
+2. Click **Add Area**
+3. Configure the area:
+   - **Name** - e.g., "Floor 1", "East Wing"
+   - **Description** - What this area contains
+   - **Default** - Set as default area for this location
+4. Add a map to the area
+5. Save
+
+## Managing Maps
+
+Each area should have at least one map for robot visualization and navigation.
+
+### Upload a Map Image
+
+1. Open the area in the Locations editor
+2. Click **Upload Map**
+3. Select an image file (PNG, JPG, SVG)
+4. Set the map scale:
+   - Click two points on the map
+   - Enter the real-world distance between them
+5. Set origin and orientation if needed
+6. Save
+
+### Import from Robot
+
+If your robot has SLAM capability:
+1. Open the area in the editor
+2. Click **Import from Robot**
+3. Select the robot
+4. Choose the map to import
+5. The map is added to the area
+
+### Map Alignment
+
+When robots have their own maps that differ from the floor plan:
+
+1. Go to the area's map settings
+2. Click **Map Aligner**
+3. Select the robot whose map to align
+4. Use visual landmarks to align:
+   - Drag to position
+   - Rotate to orient
+   - Scale if needed
+5. Save the alignment
+
+<Tip>
+  Use permanent features like walls and doorways for alignment—not furniture or movable objects.
+</Tip>
+
+## Zones and Waypoints
+
+### Zones
+
+Define areas with special meaning or rules:
+
+| Zone Type | Purpose |
+|-----------|---------|
+| **Restricted** | Robots cannot enter |
+| **Speed Limit** | Robots slow down |
+| **Pickup** | Item collection points |
+| **Dropoff** | Delivery destinations |
+| **Charging** | Charging station areas |
+| **Danger** | Safety-critical areas |
+
+**To create a zone:**
+1. Open the map in edit mode
+2. Click **Add Zone**
+3. Draw the zone boundary
+4. Select zone type
+5. Configure zone rules
+6. Save
+
+### Waypoints
+
+Named positions for navigation:
+
+**To create a waypoint:**
+1. Open the map in edit mode
+2. Click **Add Waypoint**
+3. Click the position on the map
+4. Name the waypoint
+5. Set waypoint type (optional)
+6. Save
+
+**Waypoint naming conventions:**
+```
+# Good examples
+Charging-Station-A
+Shipping-Dock-1
+Elevator-Floor2
+Entrance-Main
+
+# Be consistent across locations
+```
+
+## Assigning Robots to Locations
+
+Robots can be assigned to locations for:
+- Filtering in dashboards
+- Location-specific configurations
+- Access control
+
+### Assign via Settings
+
+1. Go to **Settings** → **Robots**
+2. Select a robot
+3. Set the **Location** field
+4. Save
+
+### Assign via Robot Dashboard
+
+1. Open the Robot dashboard
+2. Go to robot settings
+3. Select location from dropdown
+4. Save
+
+### Bulk Assignment
+
+1. In Fleet dashboard, select multiple robots
+2. Use bulk action menu
+3. Choose **Assign to Location**
+4. Select the location
+5. Confirm
+
+## Multi-Location Operations
+
+### Filtering by Location
+
+All dashboards support location filtering:
+- Fleet dashboard → Location dropdown
+- Reports → Filter by location
+- Incidents → Location-specific views
+
+### Location-Based Permissions
+
+<Info>
+  Location-based access control is available in **Enterprise** edition.
+</Info>
+
+Restrict users to specific locations:
+1. Go to **Settings** → **Users**
+2. Edit user
+3. Set **Allowed Locations**
+4. User only sees robots at those locations
+
+### Cross-Location Views
+
+For managers overseeing multiple locations:
+- Use "All Locations" filter
+- Create dashboards showing location comparisons
+- Set up location-aggregated KPIs
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use clear naming">
+    "Austin Distribution Center - Floor 1" is better than "Location A - Area 1".
+  </Accordion>
+  
+  <Accordion title="Update maps when layouts change">
+    Outdated maps cause navigation issues. Schedule regular map reviews.
+  </Accordion>
+  
+  <Accordion title="Define zones before deployment">
+    Set up restricted and speed-limit zones before robots go live.
+  </Accordion>
+  
+  <Accordion title="Standardize waypoint naming">
+    Use consistent naming across all locations for easier training and automation.
+  </Accordion>
+  
+  <Accordion title="Document your locations">
+    Keep a record of area purposes, map sources, and special configurations.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Locations Dashboard" icon="building" href="/space-intelligence/dashboards/locations">
+    Using the Locations dashboard.
+  </Card>
+  <Card title="Maps Concepts" icon="map" href="/ground-control/concepts/maps">
+    Deep dive into map configuration.
+  </Card>
+  <Card title="Traffic Management" icon="traffic-light" href="/ground-control/configuration/kinds/traffic-management">
+    Configure traffic zones.
+  </Card>
+  <Card title="Spatial Annotations" icon="draw-polygon" href="/ground-control/configuration/kinds/spatial-annotations">
+    Advanced map annotations.
+  </Card>
+</CardGroup>
+

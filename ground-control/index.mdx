@@ -3,79 +3,48 @@ title: "Ground Control"
 description: "Developer tools and SDKs for robot integration"
 ---
 
-InOrbit is a RobOps platform aimed at resolving common infrastructure needs and integrating into the broader robotics solution. Here you can find a menu of the different options you can choose from including SDKs, APIs and tools.
+**InOrbit Ground Control** provides the developer tools, SDKs, and APIs you need to connect robots to InOrbit and build applications that leverage robot data and capabilities.
 
-## Authentication
+## Connect Your Robots
 
-All API and SDK access is authenticated with the InOrbit system using an API Key which can be obtained and managed through [InOrbit Console](https://console.inorbit.ai), in the [API Key section](/ground-control/authentication). An API Key is always associated with a service user in your account and its access is managed using role-based access control.
+<CardGroup cols={2}>
+  <Card title="InOrbit Agent" icon="download" href="/ground-control/robot-integration/agent">
+    **Recommended for ROS robots**
+    
+    One-line installation with native ROS/ROS 2 support.
+  </Card>
+  <Card title="Connectors" icon="plug" href="/ground-control/robot-integration/connectors">
+    **For MiR, OTTO, Gausium & more**
+    
+    Pre-built integrations for popular fleet managers.
+  </Card>
+</CardGroup>
 
-<Card
-  title="Get your API Key"
-  icon="key"
-  href="/ground-control/authentication"
->
-  Learn how to create and manage API keys for accessing InOrbit services.
+Building a custom integration? See [Robot SDK](/ground-control/robot-integration/robot-sdk) and [Edge SDK](/ground-control/robot-integration/edge-sdk).
+
+## Build with Our APIs
+
+Access robot data and capabilities programmatically.
+
+<Card title="REST API Reference" icon="code" href="/ground-control/application-integration/rest-apis">
+  Full API documentation for robots, missions, incidents, and more.
 </Card>
 
-## Integrating Applications
+## Configure InOrbit
 
-These interfaces allow utilizing robot capabilities in other applications. There are various alternatives that are suitable for different types of applications and technologies.
+Manage your InOrbit setup programmatically.
 
 <CardGroup cols={2}>
-  <Card
-    title="REST APIs"
-    icon="code"
-    href="/ground-control/application-integration/rest-apis"
-  >
-    Best suited for integrating robot functionality in custom applications and business workflows.
+  <Card title="Authentication" icon="key" href="/ground-control/authentication">
+    Create and manage API keys for accessing InOrbit services.
   </Card>
-  <Card
-    title="Embeds"
-    icon="layout"
-    href="/ground-control/application-integration/embeds"
-  >
-    Pre-made robot-specific UI components for web applications.
-  </Card>
-  <Card
-    title="Configuration as Code"
-    icon="settings"
-    href="/ground-control/application-integration/configuration-as-code"
-  >
-    Define advanced configuration programmatically with version control.
-  </Card>
-  <Card
-    title="Incident Management"
-    icon="alert-triangle"
-    href="/ground-control/application-integration/incident-management"
-  >
-    Handle and manage robot incidents programmatically.
+  <Card title="CLI & Config" icon="terminal" href="/ground-control/configuration/cli">
+    Configure InOrbit using the command line and YAML definitions.
   </Card>
 </CardGroup>
 
-## Robot Integration
+---
 
-Connect your robots to the InOrbit platform using SDKs and integration methods.
-
-<CardGroup cols={2}>
-  <Card
-    title="Robot SDK"
-    icon="cpu"
-    href="/ground-control/robot-integration/robot-sdk"
-  >
-    Bidirectional communication between robots and the cloud (C++ and Python).
-  </Card>
-  <Card
-    title="Edge SDK"
-    icon="network"
-    href="/ground-control/robot-integration/edge-sdk"
-  >
-    Connect robots from intermediary applications (JavaScript/TypeScript and Python).
-  </Card>
-  <Card
-    title="Interoperability Standards"
-    icon="link"
-    href="/ground-control/robot-integration/interoperability"
-  >
-    Support for MassRobotics AMR, VDA 5050, and Open-RMF.
-  </Card>
-</CardGroup>
+<Card title="Looking for Space Intelligence?" icon="rocket" href="/space-intelligence">
+  **Space Intelligence** is our AI-powered platform for end users managing robot operations.
+</Card>

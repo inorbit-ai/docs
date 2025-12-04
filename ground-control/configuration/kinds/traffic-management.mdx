@@ -1,20 +1,62 @@
 ---
 title: "Traffic Management"
-description: "Configuration reference for Traffic Management"
+description: "Control where and how robots navigate with traffic zones and rules"
 ---
 
-Managing robots fleets, in particular with multiple and heterogeneous robots in a same location
-require effective orchestration of their work.
-One aspect of this orchestration is controlling where and how robots can navigate in their location,
-and if they should follow any traffic rules.
-InOrbit supports controlling traffic by defining Zones in a map, assign them traffic rules
-or implement your own custom logic and representation for them.
+<Note>
+**Status: Limited Availability** — Contact support to enable traffic management features.
+</Note>
 
-_Note: This feature is only available to some Editions._
+Traffic management enables coordination of robot fleets by defining zones in your maps and assigning traffic rules. This is essential for multi-robot deployments where robots need to navigate shared spaces safely—preventing collisions, managing access to narrow corridors, and coordinating docking areas.
 
-### Traffic Zone Types
+InOrbit provides two configuration kinds for traffic management:
+- **TrafficZoneType**: Defines categories of zones with traffic rules and visual styles
+- **TrafficZone**: Defines individual zones on maps with specific geometry
 
-> Traffic Zone Type config
+## When to Use
+
+- **Single-occupancy areas**: Narrow corridors, charging stations, or workstations where only one robot should operate at a time
+- **No-go zones**: Areas robots must avoid entirely (e.g., restricted areas, emergency exits)
+- **Dynamic behaviors**: Trigger actions when robots enter or leave zones (e.g., adjust speed, activate lighting)
+- **External integration**: Use the [Traffic Management API](/ground-control/application-integration/rest-apis) to query and control zones from external systems
+
+## Key Concepts
+
+### Built-in Traffic Rules
+
+Two traffic rules are available out of the box:
+
+| Rule | Description |
+|------|-------------|
+| `nogo` | Robots are not permitted to enter the zone |
+| `soz` | Single-Occupancy Zone—only one robot allowed at a time |
+
+Contact support for custom traffic rules.
+
+### Zone Events
+
+Zones can trigger robot actions based on these events:
+
+| Event | Trigger |
+|-------|---------|
+| `onEnter` | Robot enters the zone |
+| `onExit` | Robot leaves the zone |
+| `onOccupied` | First robot enters (zone becomes occupied) |
+| `onEmpty` | Last robot leaves (zone becomes empty) |
+| `onState` | Zone state changes to a specific value |
+
+### Zone State
+
+Zones have an internal `state` that can be:
+- Modified by traffic controllers (`free`, `occupied`)
+- Updated via the [REST API](/ground-control/application-integration/rest-apis)
+- Used to trigger conditional styling
+
+## Traffic Zone Types
+
+Zone types define the behavior and appearance of zone categories.
+
+### Example: Charging Zone Type
 
 ```yaml
 apiVersion: v0.1
@@ -24,69 +66,65 @@ metadata:
   id: charging
 spec:
   label: Charging Zone
-  # Only one robot is allowed to enter this zone at a time, so we use "soz" (Single-Occupancy Zone)
-  # traffic rule
   rules:
     - soz
     - type: nogo
       options:
         priorityTags:
           tagId: 10
-  # Color for these zones will be green, except when state value is "occupied"
   style:
     color: "#66c2a5"
   conditionalStyle:
     occupied:
       color: "#e5c494"
   events:
-    # Whenever a robot enters the zone, we want to execute an action on it. In this example,
-    # turning on ambient lighting on the charging zone (identified by room001)
     - type: action
       actionId: turnOnLights
       targetId: room001
       event: onEnter
 ```
 
+### Zone Type Fields
 
-The `TrafficZoneType` kind is used to define the type of zones requiring traffic attention.
-For example: parking or docking areas reserved for robots, areas with special traffic rules
-such as a narrow alley where only one robot should be allowed at a time, or areas where robots
-are not permitted to enter.
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | `string` | Yes | Human-readable name |
+| `rules` | `array` | No | Traffic rules to enforce |
+| `style` | `object` | No | Default visual appearance |
+| `conditionalStyle` | `object` | No | Style overrides based on zone state |
+| `events` | `array` | No | Actions triggered by zone events |
 
-Zone Types can be assigned traffic `rules`, to enforce such behaviors. Currently,
-only `"nogo"`
-and `"soz"` (for Single-Occupancy Zone)
-rules are implemented out of the box.
-Contact support or your customer engineer for help to implement custom traffic rules.
+### Traffic Rules
 
-By default, two `TrafficZoneType`s are configured (`"nogo"` and `"soz"`)
-in all accounts; with these two rules for No-Go zones
-and Single-Occupancy. Any number of user-defined zones can be configured.
-All zone types can have different styles (color, transparency) to be visually distinguished
-in the navigation maps.
+Rules can be specified as strings or objects with options:
 
-They can also use different styles according to their internal state. In the example, a `soz` zone
-defines a different color to use when its state has value `"occupied"`, as defined in the
-`conditionalStyle` section. The state is changed by traffic controllers ("free", "occupied")
-and it can also be modified using
-[REST APIs](https://api.inorbit.ai/docs/index.html#tag/trafficManagement).
+```yaml
+rules:
+  - soz                        # Simple rule
+  - type: nogo                 # Rule with options
+    options:
+      priorityTags:
+        tagId: 10              # Robots with this tag can override the rule
+```
 
-`TrafficZoneType`s are configured for "account" scope, ie. globally for all robots and locations.
+### Style Configuration
 
-**Events**. Zones can have _events_ defined, that trigger when robots enter or leave the zone, when
-the zone first become occupied by any robot, or when the last robot leaves. These are defined in
-the `events` section.
-The `event` value must be one of `"onEnter"`, `"onExit"`, `"onEmpty"` or `"onOccupied"`; and it
-triggers a robot `action` (the only event type supported initially), which can be run on the robot that
-initiated the event or in a different robot or device by using the `targetId`. The action `actionId`
-must be configured in that robot.
-For example, one might want a robot to slow down when entering a zone, by running a specific action
-that configures its speed; or turn on/off ambient lighting while the robot is in the zone
-for a vision-based robot navigation system to work properly.
+```yaml
+style:
+  color: "#66c2a5"             # Zone color (hex)
 
-### Traffic Zones
+conditionalStyle:
+  occupied:                    # Applied when state is "occupied"
+    color: "#e5c494"
+  free:                        # Applied when state is "free"
+    color: "#a6d854"
+```
 
-> Traffic Zone config
+## Traffic Zones
+
+Individual zones define specific areas on location maps.
+
+### Example: Basic Zone
 
 ```yaml
 apiVersion: v0.1
@@ -99,7 +137,6 @@ spec:
   type: charging
   frameId: map
   geometry:
-    # Polygon coordinates are normally obtained when drawing the zone in the app
     polygon:
       - x: 0
         y: 0
@@ -109,72 +146,16 @@ spec:
         y: 1
       - x: 0
         y: 1
-    bufferDistance: 0.5 # (Optional) Defines a buffer distance for the zone
+    bufferDistance: 0.5
   events:
-    # Individual zones also support events. This example would run "beepbeep" action on the
-    # robot entering the zone
     - type: action
       actionId: beepbeep
       event: onEnter
 ```
 
-The `TrafficZone` kind represents each of the zones defined in a location map.
-They contain the actual coordinates of a polygon representing their two-dimensional area:
-each of the elements of list `polygon` must be a point given as `x` and `y` coordinates.
-Note that to assist in defining zones, it is advised to use the editor in Navigation map,
-enabled by clicking _Layers_ > _Zones_.
+### Example: Zone with Robot Selector
 
-Zones are defined for physical spaces, which are identified by both the `locationId` (a _tag_)
-and the `frameId` the robot is using in that location.
-
-Each zone has a unique `type`, which must be one of the configured `TrafficZoneType`s.
-A zone will be represented in the map using the style given by its zone type.
-It will also use any traffic rules defined in the type.
-
-Note that zones can be useful even if their type has no traffic rules assigned to them, in multiple
-ways:
-
- - By changing its visual representation when the zone is free or it contains robots, it can
-   assist operators monitoring the fleet to be aware of their presence.
- - They allow defining custom behaviors for robots and their missions, by using functions to
-   query about zone states and presence of robots.
-   See [expression language](/ground-control/concepts/expressions-language#expressions-language). For example, a mission step might involve
-   waiting for another robot to enter or leave a zone, using an expression such as:
-   `isRobotInZone('dropZone') and not isZoneOccupied('armReachArea')"`
- - Through the
-   [REST API](https://api.inorbit.ai/docs/index.html#tag/trafficManagement),
-   it is possible to create integrations with external fleet managers, warehouse management systems
-   or other tools; querying the state of zones and modifying them to also impact robot behaviors.
-
-Zones can also be assigned `events` invidually. Events are described in the `TrafficZoneType`
-section. When any zone event occurs, both the triggers defined in the `TrafficZone` and those
-in its `TrafficZoneType` are executed.
-
-If the user wants to detect or stop robots before they enter the defined zone geometry, the zone can be configured
-to emit `onEnter` events when the robot approaches but has not yet entered the zone.
-The property `bufferDistance` can define an area around the defined polygon so that `onEnter` events trigger
-when a robot (or part of it) is less than bufferDistance meters from the actual zone polygon.
-
-#### Robots selector
-
-Zones can optionally include a robots selector to restrict which robots are considered when evaluating a zone (for example, for occupancy and events). If omitted, the zone applies to all robots in the location.
-
-The selector supports matching by robot id, a list of ids, tags (required tags), tags to ignore, and a name pattern. All provided conditions are ANDed.
-
-> Robots selector schema
-
-```yaml
-spec:
-  robots:
-    robot:
-      robotId: "<robotId>"            # optional
-      robotIds: ["<id1>", "<id2>"]    # optional
-      tagIds: ["<tag1>", "<tag2>"]    # optional; robot must contain all
-      ignoreTagIds: ["<tagX>"]        # optional; exclude robots with any of these tags
-      namePattern: "<regex>"          # optional;  regex
-```
-
-> Traffic Zone with robots selector
+Restrict which robots the zone applies to:
 
 ```yaml
 apiVersion: v0.1
@@ -199,6 +180,77 @@ spec:
       - { x: 0, y: 1 }
 ```
 
-Notes:
+### Zone Fields
 
-- All selector conditions are required simultaneously (logical AND).
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | `string` | Yes | Human-readable name |
+| `type` | `string` | Yes | Zone type ID (must match a TrafficZoneType) |
+| `frameId` | `string` | Yes | Map frame identifier |
+| `geometry` | `object` | Yes | Zone boundaries |
+| `robots` | `object` | No | Robot selector to filter affected robots |
+| `events` | `array` | No | Zone-specific event triggers |
+
+### Geometry Configuration
+
+```yaml
+geometry:
+  polygon:                     # List of vertices
+    - x: 0
+      y: 0
+    - x: 1
+      y: 0
+    - x: 1
+      y: 1
+    - x: 0
+      y: 1
+  bufferDistance: 0.5          # Optional: expand zone by this distance (meters)
+```
+
+<Tip>
+Use the Navigation widget's zone editor (_Layers_ > _Zones_) to draw zones visually instead of manually specifying coordinates.
+</Tip>
+
+### Robot Selector
+
+Restrict which robots are considered for zone events and occupancy:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `robotId` | `string` | Single robot ID |
+| `robotIds` | `string[]` | List of robot IDs |
+| `tagIds` | `string[]` | Robot must have all these tags |
+| `ignoreTagIds` | `string[]` | Exclude robots with any of these tags |
+| `namePattern` | `string` | Regex pattern for robot name |
+
+All conditions are ANDed—a robot must satisfy all specified conditions.
+
+### Event Configuration
+
+```yaml
+events:
+  - type: action               # Event type (only "action" supported)
+    event: onEnter             # Trigger event
+    actionId: slow-down        # Action to execute
+    targetId: robot001         # Optional: run on specific robot/device
+    arguments:                 # Optional: action arguments
+      speed: 0.5
+```
+
+## Use Cases Without Rules
+
+Even without traffic rules, zones are useful for:
+
+- **Visual monitoring**: Zones change appearance when occupied, helping operators track robot positions
+- **Mission logic**: Use zone functions in expressions:
+  ```
+  isRobotInZone('dropZone') and not isZoneOccupied('armReachArea')
+  ```
+- **External integration**: Query zone state via [REST API](/ground-control/application-integration/rest-apis) for WMS, fleet manager, or other system integration
+
+## Related Documentation
+
+- [Traffic Management API](/ground-control/application-integration/rest-apis) — REST API for zone state
+- [Action Definitions](/ground-control/configuration/kinds/action-definitions) — Define actions for zone events
+- [Expressions Language](/ground-control/concepts/expressions-language) — Zone functions for conditions
+- [Maps](/ground-control/concepts/maps) — Map and frame concepts

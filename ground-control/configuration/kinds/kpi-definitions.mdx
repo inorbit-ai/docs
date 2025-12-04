@@ -1,80 +1,204 @@
 ---
 title: "KPI Definitions"
-description: "Configuration reference for KPI Definitions"
+description: "Aggregate fleet metrics for performance analysis and reporting"
 ---
 
-> KPI Definition Object Example
+KPI (Key Performance Indicator) definitions specify how to aggregate data from missions and incidents into meaningful metrics. These metrics help track fleet performance over time—mission success rates, area covered, incident frequency, and more.
+
+<Note>
+KPI definitions are only supported at the account level.
+</Note>
+
+## When to Use
+
+- **Performance dashboards**: Display aggregated metrics in mission widgets
+- **Success tracking**: Calculate mission completion and success rates
+- **Utilization metrics**: Track active robots, missions per day, etc.
+- **Custom aggregations**: Build fleet-specific metrics from mission data fields
+
+## Spec Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | string | Yes | Human-readable label for dashboards. |
+| `unit` | string | No | Unit of measurement (e.g., `"%"`, `"meters"`, `"seconds"`). |
+| `objectType` | string | Yes | Object type to aggregate: `"mission"` or `"incident"`. |
+| `field` | string | Yes | Field to aggregate. |
+| `aggregation` | string | Yes | Aggregation function (see below). |
+| `intervalMinutes` | number | No | Time window for aggregation (e.g., 1440 for daily). |
+| `secondAggregation` | string | No | Secondary aggregation applied after the first. |
+| `filters` | array | No | Filters to apply before aggregation. |
+
+### Aggregation Functions
+
+| Function | Description |
+|----------|-------------|
+| `SUM` | Sum of all values |
+| `AVG` | Average of all values |
+| `MIN` | Minimum value |
+| `MAX` | Maximum value |
+| `COUNT` | Count of records |
+| `COUNT_DISTINCT` | Count of unique values |
+
+### Filter Operators
+
+| Operator | Description |
+|----------|-------------|
+| `=` | Equals |
+| `!=` | Not equals |
+| `>` | Greater than |
+| `<` | Less than |
+| `>=` | Greater than or equal |
+| `<=` | Less than or equal |
+
+## Available Fields
+
+### Common Fields (all object types)
+
+| Field | Description |
+|-------|-------------|
+| `id` | Object ID |
+| `entityId` | Robot/entity ID |
+| `entityType` | Entity type |
+| `type` | Object type |
+| `startTime` | Start timestamp |
+| `endTime` | End timestamp |
+| `data.label` | Object label |
+| `data.duration` | Duration in milliseconds |
+| `data.estimatedDistance` | Estimated distance covered |
+
+### Mission-Specific Fields
+
+| Field | Description |
+|-------|-------------|
+| `data.state` | Mission state string |
+| `data.status` | Mission status (`ok`, `error`, `warn`) |
+| `data.isSuccess` | Boolean success flag |
+| `data.isSuccessNum` | Numeric success (1 or 0) — useful for AVG |
+| `data.incidentsCount` | Number of incidents during mission |
+| `data.completedPercent` | Completion percentage (0-1) |
+| `data.data_${key}` | Custom mission data fields |
+
+## Examples
+
+### Mission Success Rate
 
 ```yaml
-metadata:
-  scope: account/<ACCOUNT_ID>
-  id: total_area_covered
-apiVersion: v0.1
 kind: KpiDefinition
-spec:
-  label: Total area covered
-  objectType: mission
-  field: data.data_Area Covered
-  aggregation: SUM
-  filters:
-    - field: data.state
-      operator: "="
-      value: "completed"
----
 apiVersion: v0.1
-kind: KpiDefinition
 metadata:
-  id: active_robots_per_day
-  scope: account
+  scope: account/<accountId>
+  id: "mission-success-rate"
 spec:
-  aggregation: COUNT_DISTINCT
-  field: entityId
-  filters:
-  - field: data.state
-    operator: '='
-    value: completed
-  intervalMinutes: 1440
-  label: Avg Active robots
-  objectType: mission
-  secondAggregation: AVG
+  label: "Mission Success Rate"
+  unit: "%"
+  objectType: "mission"
+  field: "data.isSuccessNum"
+  aggregation: "AVG"
 ```
 
-The `KpiDefinition` kind allows you to define and configure Key Performance Indicators (KPIs) for your fleet. KPIs are metrics that help you track the performance of your robots over time. They can be used to monitor various aspects of your operations, such as mission success rates, area covered by your robots in missions, or incidents rates.
+### Total Area Covered
 
-KPI definitions are only supported at the account level.
+```yaml
+kind: KpiDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "total-area-covered"
+spec:
+  label: "Total Area Covered"
+  unit: "m²"
+  objectType: "mission"
+  field: "data.data_Area Covered"
+  aggregation: "SUM"
+  filters:
+    - field: "data.state"
+      operator: "="
+      value: "completed"
+```
 
-The `spec` of a `KpiDefinition` configuration has the following properties:
+### Completed Missions Count
 
-- `label`: A human-readable label for the KPI, which will be displayed in dashboards.
-- `unit`: (Optional) The unit of measurement for the KPI (e.g., "%", "meters", "seconds").
-- `objectType`: The type of object to aggregate data from. The possible values are `mission` and `incident`.
-- `field`: The specific field of the object to aggregate.
-- `aggregation`: The aggregation function to apply to the field's data. Supported values are: `SUM`, `AVG`, `MIN`, `MAX`, `COUNT`, `COUNT_DISTINCT`.
-- `intervalMinutes`: (Optional) The time interval in minutes over which to aggregate the data.
-- `secondAggregation`: (Optional) A second aggregation function to apply after the first one. Supported values are the same as for `aggregation`.
-- `filters`: (Optional) A list of filters to apply to the data before performing the aggregation. Each filter is an object with the following properties:
-    - `field`: The field to filter on.
-    - `operator`: The comparison operator to use. Supported values are: `=`, `!=`, `>`, `=`, `<=`.
-    - `value`: The value to compare against.
+```yaml
+kind: KpiDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "completed-missions"
+spec:
+  label: "Completed Missions"
+  objectType: "mission"
+  field: "id"
+  aggregation: "COUNT"
+  filters:
+    - field: "data.state"
+      operator: "="
+      value: "completed"
+```
 
-Valid fields for KPI objects are:
+### Average Active Robots Per Day
 
-- `id`: The ID of the object.
-- `entityId`: The entity ID of the object.
-- `entityType`: The entity type of the object.
-- `type`: The type of the  (e.g. `mission`, `incident`).
-- `startTime`: The start time of the object.
-- `endTime`: The end time of the object.
-- `data.label`: The label of the object.
-- `data.duration`: The duration of the KPI object.
-- `data.estimatedDistance`: The estimated distance covered by the robot between the `startTs` and `endTs` of the KPI object.
+Uses two-stage aggregation: count unique robots per day, then average across days.
 
-For objects of type `mission`, the following fields are also available:
+```yaml
+kind: KpiDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "active-robots-per-day"
+spec:
+  label: "Avg Active Robots"
+  objectType: "mission"
+  field: "entityId"
+  aggregation: "COUNT_DISTINCT"
+  intervalMinutes: 1440  # 24 hours
+  secondAggregation: "AVG"
+  filters:
+    - field: "data.state"
+      operator: "="
+      value: "completed"
+```
 
-- `data.state`: The state of the mission.
-- `data.status`: The status of the mission.
-- `data.isSuccess`: True if the mission was successful, false otherwise.
-- `data.isSuccessNum`: 1 if the mission was successful, 0 otherwise.
-- `data.incidentsCount`: The number of incidents of the mission.
-- `data.completedPercent`: The percentage of the mission that was completed.
-- `data.data_${mission_data_key}`: The value of the mission data key.
+### Average Mission Duration
+
+```yaml
+kind: KpiDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "avg-mission-duration"
+spec:
+  label: "Avg Mission Duration"
+  unit: "min"
+  objectType: "mission"
+  field: "data.duration"
+  aggregation: "AVG"
+  filters:
+    - field: "data.state"
+      operator: "="
+      value: "completed"
+```
+
+### Incident Count by Severity
+
+```yaml
+kind: KpiDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "critical-incidents"
+spec:
+  label: "Critical Incidents"
+  objectType: "incident"
+  field: "id"
+  aggregation: "COUNT"
+  filters:
+    - field: "severity"
+      operator: "="
+      value: "SEV 0"
+```
+
+## Related Documentation
+
+- [Mission Tracking](/ground-control/configuration/kinds/mission-tracking) — Configure mission data capture
+- [Dashboards](/ground-control/configuration/kinds/dashboards) — Display KPIs in mission widgets

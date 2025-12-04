@@ -1,0 +1,174 @@
+---
+title: "Robot Dashboard"
+description: "Detailed view of individual robot vitals, logs, and actions"
+---
+
+The Robot dashboard provides a detailed view of a specific robot, with visualization widgets for vitals, modes, logs, and more. This is where you go to understand what's happening with an individual robot and take action.
+
+## Selecting a Robot
+
+In the **ROBOT** field at the top, enter or select the robot you want to view. You can:
+- Type the robot name to search
+- Select from the dropdown list
+- Use keyboard shortcuts to switch quickly
+
+## Quick Actions Bar
+
+Across the top row, you'll find shortcuts and actions:
+
+| Action | Description |
+|--------|-------------|
+| **Restart Agent** | Restart the InOrbit agent on the robot |
+| **Update Agent** | Update to the latest agent version |
+| **Navigation** | Jump to Navigation dashboard for this robot |
+| **Settings** | Robot-specific configuration |
+
+## Default Widgets
+
+### Vitals
+
+Real-time health metrics for the robot:
+
+| Metric | Description | Typical Thresholds |
+|--------|-------------|-------------------|
+| **Battery** | Charge level | 🔴 under 15%, 🟡 15-30%, 🔵 over 30% |
+| **CPU** | Processor usage | 🔴 over 90%, 🟡 70-90%, 🔵 under 70% |
+| **Memory** | RAM utilization | 🔴 over 90%, 🟡 70-90%, 🔵 under 70% |
+| **Disk** | Storage used | 🔴 over 90%, 🟡 70-90%, 🔵 under 70% |
+| **Temperature** | Component temps | Robot-specific |
+
+<Tip>
+  Thresholds can be customized in robot configuration to match your robot's specifications.
+</Tip>
+
+### Modes and Tags
+
+Shows the robot's current operational state:
+
+**Modes** (mutually exclusive):
+- Idle
+- Charging
+- On Mission
+- Manual
+- Error
+- Custom modes
+
+**Tags** (multiple can apply):
+- Location tags
+- Status tags
+- Custom tags
+
+### Timelines
+
+Historical data visualization:
+
+**Operating Metrics Timeline**
+- Shows vitals over time
+- Identify patterns and trends
+- Spot anomalies
+
+**Network Timeline**
+- Connection status history
+- Latency and bandwidth
+- Disconnection events
+
+### Actions
+
+Available commands you can send to the robot:
+
+<CardGroup cols={3}>
+  <Card title="Navigation" icon="route">
+    Send to waypoint, cancel navigation
+  </Card>
+  <Card title="Control" icon="gamepad">
+    Pause, resume, emergency stop
+  </Card>
+  <Card title="System" icon="gear">
+    Restart, reboot, update
+  </Card>
+</CardGroup>
+
+Actions are configured by administrators and can be restricted by role.
+
+### Robot Log
+
+Recent log entries from the robot:
+- Info, warning, and error messages
+- Filterable by severity
+- Searchable by content
+- Exportable for analysis
+
+## Live vs Historical Data
+
+The Robot dashboard shows **real-time data** by default (blue "Live" indicator).
+
+To view historical data:
+1. Click on a timeline widget
+2. Select a time range
+3. The "Live" indicator turns to "Live off" (gray)
+4. Click "Live off" to return to real-time
+
+## Adding Widgets
+
+Customize the Robot dashboard with additional widgets:
+
+| Widget | Purpose |
+|--------|---------|
+| **Camera** | Live video feed |
+| **Map** | Robot position on map |
+| **ROS Diagnostics** | Detailed ROS status |
+| **Key/Value** | Custom data sources |
+| **Incidents** | Active incidents for this robot |
+| **Mission** | Current mission status |
+
+To add widgets:
+1. Enter edit mode
+2. Click **Add Widget**
+3. Configure the widget
+4. Position in layout
+5. Save
+
+## Robot Settings
+
+Access robot-specific configuration:
+
+- **General** - Name, description, tags
+- **Agent** - Connection settings, update policy
+- **Data Sources** - What data to collect
+- **Actions** - Available commands
+- **Alerts** - Robot-specific incident rules
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Robot showing offline">
+    Check network connectivity, agent status, and firewall rules. The agent may need to be restarted.
+  </Accordion>
+  
+  <Accordion title="Missing data in widgets">
+    Verify the robot is publishing the expected topics/data sources. Check agent configuration.
+  </Accordion>
+  
+  <Accordion title="Actions not working">
+    Confirm you have the required role permissions and the robot is in a state that accepts commands.
+  </Accordion>
+  
+  <Accordion title="High latency">
+    Check network conditions. Consider agent configuration for data throttling if bandwidth is limited.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Navigation Dashboard" icon="route" href="/space-intelligence/dashboards/navigation">
+    Monitor robot navigation in detail.
+  </Card>
+  <Card title="Action Definitions" icon="bolt" href="/ground-control/configuration/kinds/action-definitions">
+    Configure available robot actions.
+  </Card>
+  <Card title="Data Sources" icon="database" href="/ground-control/configuration/kinds/data-sources">
+    Set up what data robots report.
+  </Card>
+</CardGroup>
+

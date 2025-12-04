@@ -1,14 +1,63 @@
 ---
-title: "Robot Integration Overview"
-description: "Connect robots to InOrbit platform"
+title: "Connect Robots"
+description: "Options for connecting robots to InOrbit"
 ---
 
-This section describes tools and libraries that can be used to connect robots to InOrbit. The connection can be made from the individual robots or from servers running on the edge.
+There are several ways to connect robots to InOrbit, depending on your robot platform and architecture.
 
-Depending on the selected solution architecture, you can pick one of the following SDKs:
+## Which Method Should I Use?
 
-- **Robot SDK** helps developers implement a bidirectional communication channel between robots and InOrbit. It can be used to feed robot data into InOrbit and then implement actions, such as teleoperation and more. The Robot SDK also streamlines integration with ROS and ROS2 by allowing developers to map ROS topics to InOrbit using simple configuration files.
-- **Edge SDK** simplifies the integration with third-party or custom applications, like fleet managers, or warehouse management systems. It can be used to feed data gathered by edge servers into InOrbit.
+<AccordionGroup>
+  <Accordion title="ROS-based robots" icon="robot" defaultOpen>
+    **Use the InOrbit Agent** — Our recommended approach for ROS and ROS 2 robots. The agent runs on your robot, handles secure communication, and provides native ROS topic integration.
+    
+    <Card title="InOrbit Agent" icon="download" href="/ground-control/robot-integration/agent">
+      One-line installation for ROS robots
+    </Card>
+  </Accordion>
 
-The following sections describe both SDKs in detail and provides examples of their usage.
+  <Accordion title="Non-ROS robots or fleet managers" icon="server">
+    **Use a pre-built Connector** — We maintain open-source connectors for popular platforms like MiR, OTTO, and Gausium. Connectors can run on your edge infrastructure or be hosted by InOrbit in our cloud.
+    
+    <Card title="Connectors" icon="plug" href="/ground-control/robot-integration/connectors">
+      Pre-built integrations for MiR, OTTO, Gausium, and more
+    </Card>
+  </Accordion>
 
+  <Accordion title="Custom integration" icon="code">
+    **Build your own** — Use our SDKs to create a custom integration:
+    
+    - **Robot SDK** — Runs on the robot alongside the InOrbit Agent. Best for adding custom data to ROS robots or non-ROS robots where you can install the agent.
+    - **Edge SDK** — Runs on an edge server, no agent required. Best for integrating fleet managers or systems where you can't install software on robots.
+    
+    <CardGroup cols={2}>
+      <Card title="Robot SDK" icon="microchip" href="/ground-control/robot-integration/robot-sdk">
+        C++ and Python libraries (requires agent)
+      </Card>
+      <Card title="Edge SDK" icon="cloud" href="/ground-control/robot-integration/edge-sdk">
+        JavaScript and Python packages
+      </Card>
+    </CardGroup>
+  </Accordion>
+</AccordionGroup>
+
+## Comparison
+
+| Method | Best For | Runs On | Agent Required |
+|--------|----------|---------|----------------|
+| **InOrbit Agent** | ROS/ROS 2 robots | Robot | — (is the agent) |
+| **Connectors** | MiR, OTTO, Gausium, fleet managers | Edge or InOrbit Cloud | No |
+| **Robot SDK** | Custom robot software | Robot | Yes |
+| **Edge SDK** | Fleet managers, custom integrations | Edge or cloud | No |
+
+## Interoperability Standards
+
+InOrbit also supports industry standards for robot interoperability:
+
+- **MassRobotics AMR Interoperability Standard**
+- **VDA 5050** — Communication interface for AGVs/AMRs
+- **Open-RMF** — Open Robotics Middleware Framework
+
+<Card title="Interoperability" icon="link" href="/ground-control/robot-integration/interoperability">
+  Learn about standards-based integration
+</Card>

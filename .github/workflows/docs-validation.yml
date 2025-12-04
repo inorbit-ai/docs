@@ -1,0 +1,53 @@
+name: Docs Validation
+
+on:
+  pull_request:
+    paths:
+      - '**.mdx'
+      - '**.json'
+      - 'docs.json'
+  push:
+    branches:
+      - main
+    paths:
+      - '**.mdx'
+      - '**.json'
+      - 'docs.json'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Mintlify CLI
+        run: npm install -g mintlify
+
+      - name: Validate OpenAPI specification
+        run: |
+          if [ -f "inorbit.openapi.json" ]; then
+            echo "🔍 Validating OpenAPI spec..."
+            mint openapi-check inorbit.openapi.json
+            echo "✅ OpenAPI spec is valid"
+          fi
+
+      - name: Check for broken links
+        run: |
+          echo "🔗 Checking for broken links..."
+          mint broken-links
+          echo "✅ No broken links found"
+
+  # Optional: Notify on failure
+  notify-on-failure:
+    needs: validate
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify team
+        run: echo "⚠️ Documentation validation failed. Please check the workflow logs."

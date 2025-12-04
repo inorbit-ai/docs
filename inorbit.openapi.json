@@ -1,0 +1,5946 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "description": "InOrbit offers REST and streaming APIs that enable programmatic access to InOrbit features. Using these APIs you can fetch data related to your robots, trigger actions, integrate with incident management systems and more.\n\nThis page contains the APIs reference. For testing APIs, see [Postman](/#tag/Postman) section.\n",
+    "version": "1.2.0",
+    "title": "InOrbit REST APIs"
+  },
+  "servers": [
+    {
+      "url": "https://api.inorbit.ai"
+    }
+  ],
+  "security": [
+    {
+      "appKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "robots",
+      "x-displayName": "Robots",
+      "description": "Operations to list and retrieve robots' information"
+    },
+    {
+      "name": "collections",
+      "x-displayName": "Collections & Tags",
+      "description": "Operations on collections and tags"
+    },
+    {
+      "name": "attributes",
+      "x-displayName": "Attributes",
+      "description": "Operations on attributes (data sources values)"
+    },
+    {
+      "name": "localization",
+      "x-displayName": "Localization & Maps",
+      "description": "Queries on robots localization and maps"
+    },
+    {
+      "name": "spaces",
+      "x-displayName": "Spaces",
+      "description": "![Beta](Status-Beta-yellow.svg)\n\nQueries and operations on spaces\n\n**Note:** This API is experimental and may have breaking changes.\n"
+    },
+    {
+      "name": "navigation",
+      "x-displayName": "Navigation",
+      "description": "Operations related to robots navigation"
+    },
+    {
+      "name": "locks",
+      "x-displayName": "Locks",
+      "description": "APIs to lock and unlock robots"
+    },
+    {
+      "name": "actions",
+      "x-displayName": "Actions",
+      "description": "Operations on robots actions"
+    },
+    {
+      "name": "incidents",
+      "x-displayName": "Incidents",
+      "description": "Operations to open and close incidents"
+    },
+    {
+      "name": "auditLogs",
+      "x-displayName": "Audit Logs"
+    },
+    {
+      "name": "missions",
+      "x-displayName": "Missions",
+      "description": "Missions Execution.\n\nThis API allows executing missions on robots.\nThe mission to execute can be pre-defined through\nthe [MissionDefinition](https://developer.inorbit.ai/docs#configuring-mission-definitions)\nConfig API kind, or launched as a one-off mission providing its definition at dispatch time.\n\nThe execution of the mission can also be controlled through this API: Abort, pause or\nresume the mission.\n\nWhen using these APIs there is no need to invoke [MissionTracking](#tag/Mission Tracking)\nAPIs manually; all executed missions will also be tracked.\n"
+    },
+    {
+      "name": "missionTracking",
+      "x-displayName": "Mission Tracking",
+      "description": "Used to track robot missions' execution for later analysis and metrics, for example in the\nMissions dashboards.\n\nMission Tracking APIs can be used through robot agent updates to track the execution\nof a mission (or updates to its data) when this execution is controlled by the robot.\nThey can also be invoked from other external services, for example a proprietary fleet\nmanager.\n\nThese APIs are also (implicitly) used when running missions from the InOrbit platform\nthrough the [Missions APIs](#tag/missions). When executing missions in this way, there is\nnormally no need to call most of these endpoints (e.g. creating and ending a missions),\nexcept to send mission data updates to understand progress or results of the mission\n(such as number of items scanned or picked, etc).\n\nRefer to [this tutorial](https://developer.inorbit.ai/tutorials#mission-tracking-tutorial)\nfor details.\n"
+    },
+    {
+      "name": "trafficManagement",
+      "x-displayName": "Traffic Management",
+      "description": "APIs to retrieve and update Traffic Management & Zones information.\n\nThese REST APIs complement the [Config APIs](#tag/configAPI) for `TrafficZone` and `TrafficZoneType`, used\nto define the zones, their geometry and traffic rules.\nThe REST APIs allow retrieving and modifying user-defined data (key-values) and the\nzone properties as assigned by a traffic controller.\n"
+    },
+    {
+      "name": "kpis",
+      "x-displayName": "KPIs",
+      "description": "KPIs queries"
+    },
+    {
+      "name": "expressions",
+      "x-displayName": "Expressions",
+      "description": "Test and evaluate expressions"
+    },
+    {
+      "name": "inorbitConnect",
+      "x-displayName": "InOrbit Connect",
+      "description": "InOrbit Connect provisioning and management"
+    },
+    {
+      "name": "configAPI",
+      "x-displayName": "Config API"
+    },
+    {
+      "name": "cameraImages",
+      "x-displayName": "Camera Images",
+      "description": "APIs to work with camera images.\n\nThe REST APIs allow retrieving lists of camera images for a specific camera and time range.\n"
+    },
+    {
+      "name": "Push APIs",
+      "description": "InOrbit offers streaming APIs to _push_ data from InOrbit to your own cloud infrastructure.\nThe service can be configured to publish the following information from all or a subset of robots in your account:\n - Robot poses\n - Robot connection information\n - Robot status updates, including the value of specified data sources, once every 10 seconds\n - Data Source updates, relayed as soon as they are received by the platform\n\nPush APIs are currently a premium feature; please [contact support](mailto:support@inorbit.ai) if you are interested in obtaining access.\n## Protocols\nCurrently [MQTT](https://mqtt.org/) is supported out of the box. Messages are streamed normally with a QoS value 0.\nData is published in the following MQTT topics:\n\n  inorbit/<account ID>/<stream ID>/<robot Id>/visualization\n  inorbit/<account ID>/<stream ID>/<robot Id>/connection\n  inorbit/<account ID>/<stream ID>/<robot Id>/status\n  inorbit/<account ID>/<stream ID>/<robot Id>/data/<data source ID>\n\nMultiple streams with different configurations can be set-up for differnt subsets of your fleet\nThe integration can be enabled by providing your MQTT broker details (protocol, address, port) and authentication mechanism (username and password or certificates authentication), as well as any specific client ID if one needs to be specified by the client.\nThe service needs connect and publish access to wildarct topics starting with the prefix \"inorbit/\"\nProvide these details to your customer representative to enable the integration.\n## Data format\nAll APIs use JSON as data transport.\n### Poses\nMQTT postfix: /visualization\n\nRobot positions and orientation information use the following format (example):\n```\n{\n    \"robotId\": \"826667924\",\n    \"mapId\": \"map_annotated\",\n    \"mapDataHash\": \"-1892185817730566149\",\n    \"ts\": 1608668634613,\n    \"x\": 58.74927520751953,\n    \"y\": 22.560251235961914,\n    \"theta\": 0.58592736\n}\n```\nThe `x, y, theta` fields are the position and orientation in the map. They follow the [right-hand rule](https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates): X going from left to right, and Y going from bottom to top, as seen on a computer screen. The `mapId` identifies the map the robot is currently using; in case it uses multiple maps. Additionally `mapDataHash` includes a hash of the map meta- and binary data, so that a receiver of this information may decide if a new map image needs to be re-requested, for example -- see the [Maps API](maps.html).\n### Data Sources\nMQTT postfix: /data/<data source ID>\n\nData Source values are published via MQTT as soon as they are received, using the following format\n```\n{\n    \"robotId\": \"826667924\",\n    \"ts\": 1608668634613,\n    \"attributeId\": \"autonomyState\",\n    \"value\": 12\n}\n```\n"
+    },
+    {
+      "name": "Postman",
+      "description": "[Postman](https://www.postman.com/) is a popular tool for developers to design and test APIs. InOrbit APIs can be downloaded as in _Postman Collection_ format.\n\nUsage:\n\n 1. <Button><a download target=\"_blank\" href=\"inorbit.postman.json\">Download</a></Button>\n    the Postman Collection JSON file.\n 2. In a Postman client, click *Import* > *File* > *Upload Files* and select the downloaded\n    `inorbit.postman.json`.\n    This creates an element \"InOrbit REST APIs\" in the Collections sidebar.\n 3. In the new collection, click \"...\" and *Edit*, then *Authorization*.\n    Replace the `x-auth-inorbit-app-key` value with a valid InOrbit app-key from your account.\n 4. Find any request in the tree, and click *Send*.\n    Note that most of the requests have variables such as `robotId`, `tagId` etc.\n    that may need to be replaced before running the request.\n"
+    }
+  ],
+  "paths": {
+    "/robots": {
+      "get": {
+        "tags": [
+          "robots"
+        ],
+        "summary": "Retrieves a list of robots",
+        "operationId": "getRobots",
+        "description": "Returns information about all robots this account can access\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "withTags",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether to include tags in the response. Defaults to false.",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "description": "Include only robots that are tagged with any of these tag IDs. This parameter can be specified multiple times as an inclusive (OR) filter.\n"
+          },
+          {
+            "in": "query",
+            "name": "requiredTag",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "description": "Include only robots that are tagged with all of these tag IDs. This parameter can be specified multiple times as an exclusive (AND) filter.\n"
+          },
+          {
+            "in": "query",
+            "name": "isOnline",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter robots by online status. If not provided, all robots will be returned.",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "withLocalization",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether to include limited localization data in the response. Defaults to false.\nIf the frameId query is provided, withLocalization will be `true`.\nDetailed localization data for a robot can be obtained through the [/robots/{robotId}/localization/full](#operation/getRobotLocalization) endpoint.\n",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "locationId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter robots by locationId.",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "frameId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter robots by frameId.\nIf not provided, all robots will be returned. If provided, withLocalization will be `true`.\nOnly valid if a locationId is provided.\n",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of robots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RobotListItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Check the query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}": {
+      "get": {
+        "tags": [
+          "robots"
+        ],
+        "summary": "Retrieves a robot",
+        "operationId": "getRobot",
+        "description": "Returns information about a robot given its id\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A robot object",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0011-aabb-cccc",
+                  "name": "demo-robot-1234",
+                  "agentOnline": true,
+                  "agentVersion": "1.2.3",
+                  "updatedTs": 1594944602962
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Robot"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/tags": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "robotId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The robot's id",
+          "required": true
+        }
+      ],
+      "get": {
+        "tags": [
+          "robots"
+        ],
+        "summary": "Returns the list of tags for a robot",
+        "operationId": "getRobotTags",
+        "description": "Returns the list of tags applied to a robot\n",
+        "responses": {
+          "200": {
+            "description": "The list of tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RobotTag"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "robots"
+        ],
+        "summary": "Tags a robot",
+        "operationId": "tagRobot",
+        "requestBody": {
+          "description": "Tags a robot. Note that for exclusive collections other tags may be\nautomatically removed from the robot to avoid conflicts.\n",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/TagRobotByTagId"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TagRobotByTagName"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Robot tagged successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RobotTag"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/tags/{tagId}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "robotId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The robot's id",
+          "required": true
+        },
+        {
+          "in": "path",
+          "name": "tagId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The id of the tag",
+          "required": true
+        }
+      ],
+      "delete": {
+        "tags": [
+          "robots"
+        ],
+        "summary": "Untag a robot",
+        "operationId": "untagTag",
+        "responses": {
+          "204": {
+            "description": "The robot was untagged successfully"
+          },
+          "400": {
+            "description": "The robot couldn't be untagged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/attributes/{attributeId}": {
+      "get": {
+        "tags": [
+          "attributes"
+        ],
+        "summary": "Returns an attribute last value and last update time",
+        "operationId": "getRobotAttribute",
+        "description": "Returns an attribute last value and the timestamp of the last update\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "attributeId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The attribute id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute value and last update",
+            "content": {
+              "application/json": {
+                "example": {
+                  "attribute": "agentOnline",
+                  "value": true,
+                  "ts": 1594944602962
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/attributes/{attributeId}/timerange": {
+      "get": {
+        "tags": [
+          "attributes"
+        ],
+        "summary": "Returns a list with the values for a selected attribute",
+        "operationId": "getRobotAttributeWithTimeRange",
+        "description": "Returns a list with the values for a selected attribute\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "attributeId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The attribute id",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "startTs",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The start timestamp",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "endTs",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The end timestamp",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Elements per page"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Page number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attributes values",
+            "content": {
+              "application/json": {
+                "example": {
+                  "type": "array",
+                  "values": {
+                    "values": "#/components/schemas/AttributeDefinition"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeTimeRangeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/attributeDefinitions/{attributeId}": {
+      "get": {
+        "tags": [
+          "attributes"
+        ],
+        "summary": "Returns an attribute definition from a specific robot",
+        "operationId": "getRobotAttributeDefinition",
+        "description": "Returns an attribute definition from a specific robot. Note that these are normally\nthe same definitions from the account it belongs to; unless it has specific configuration overrides.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "attributeId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The attribute id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The attribute definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeDefinition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/attributeDefinitions": {
+      "get": {
+        "tags": [
+          "attributes"
+        ],
+        "summary": "Returns all attribute definitions for a robot",
+        "operationId": "getRobotAttributeDefinitions",
+        "description": "Returns all attribute definitions for a robot. They are normally the same\nas the attribute definitions for the account it belongs to, except the case when configuration\noverrides have been defined for the robot.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list with all attributes definitions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttributeDefinition"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/lock": {
+      "get": {
+        "tags": [
+          "locks"
+        ],
+        "summary": "checks if a robot is locked",
+        "operationId": "CheckRobotIsLocked",
+        "description": "Checks if a robot is locked\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "robot lock status",
+            "content": {
+              "application/json": {
+                "example": {
+                  "locked": {
+                    "userId": "M3ojid92H7rq3hvac",
+                    "userName": "service user",
+                    "userEmail": null,
+                    "locked": true,
+                    "ts": 1597342004918,
+                    "expirationTs": 1597342604918
+                  },
+                  "lockedForUser": false
+                },
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/RobotLockedResult"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RobotNotLockedResult"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "locks"
+        ],
+        "summary": "locks a robot",
+        "operationId": "LockRobot",
+        "description": "Locks a robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created lock attributes",
+            "content": {
+              "application/json": {
+                "example": {
+                  "lock": {
+                    "userId": "M3ojid92H7rq3hvac",
+                    "userName": "service user",
+                    "userEmail": null,
+                    "locked": true,
+                    "ts": 1597342004918,
+                    "expirationTs": 1597342604918
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Lock"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "locks"
+        ],
+        "summary": "unlocks a robot",
+        "operationId": "UnlockRobot",
+        "description": "Locks a robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "created lock attributes"
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/auditLogs": {
+      "get": {
+        "tags": [
+          "auditLogs"
+        ],
+        "summary": "Returns a list of robot logged events",
+        "operationId": "getRobotLogs",
+        "description": "Returns a list of robot logged events\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "startTs",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The start timestamp"
+          },
+          {
+            "in": "query",
+            "name": "endTs",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The end timestamp"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Events per page limit"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "The results page to be returned"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of robot event logs",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "ts": 1597342004918,
+                    "message": "Robot started"
+                  },
+                  {
+                    "ts": 1597342604918,
+                    "message": "Task completed"
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RobotAuditLogEvent"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/incidents": {
+      "post": {
+        "tags": [
+          "incidents"
+        ],
+        "summary": "Opens an incident related to a robot",
+        "operationId": "OpenIncident",
+        "description": "Opens an incident related to a robot using the provided alias as key.\n\nThe triggerId must match a trigger defined in InOrbit's Settings -> Insights -> Incidents\nscreen.\nThe alias is also used for deduplication. Multiple invocations of this\noperation for the same robot and alias will create only one incident.\n",
+        "requestBody": {
+          "description": "Incident object to be created",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Incident"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Incident created"
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/incidents/{incidentAlias}": {
+      "delete": {
+        "tags": [
+          "incidents"
+        ],
+        "summary": "Closes an incident related to a robot",
+        "operationId": "CloseIncident",
+        "description": "Closes an incident related to a robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "incidentAlias",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The incident alias used during incident creation",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Incident updated"
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Returns the list of tags",
+        "operationId": "getTags",
+        "description": "Returns the list of tags defined in the account. Note that only tags\nvisible to the user are included in the result.\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "collectionId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter only tags that belong to the specified collection"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/tags/{tagId}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "tagId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The tag id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Returns a tag",
+        "operationId": "getTag",
+        "description": "Returns a tag.\n",
+        "responses": {
+          "200": {
+            "description": "The tag object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Updates a tag",
+        "operationId": "updateTag",
+        "requestBody": {
+          "description": "Updates a tag",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The just updated tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Deletes a tag",
+        "operationId": "deleteTag",
+        "responses": {
+          "204": {
+            "description": "The tag was deleted"
+          },
+          "400": {
+            "description": "The tag couldn't be deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/tags": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "collectionId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The collection id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Returns the list of tags for a collection",
+        "operationId": "getCollectionTags",
+        "description": "Returns the list of tags for a collection. Only tags visible to the user\nare included in the result.\nNote that this is equivalent to the endpoint /tags?collectionId=xx\n",
+        "responses": {
+          "200": {
+            "description": "The list of tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Creates a new tag for a collection",
+        "operationId": "createTag",
+        "requestBody": {
+          "description": "Creates a new tag for a collection",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The just created tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "collectionId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The collection id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Returns a collection",
+        "operationId": "getCollection",
+        "description": "Returns a collection\n",
+        "responses": {
+          "200": {
+            "description": "The collection object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Collection"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Updates a collection",
+        "operationId": "updateCollection",
+        "requestBody": {
+          "description": "Updates a collection",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionCreateEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The just updated collection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Collection"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Deletes a collection",
+        "operationId": "deleteCollection",
+        "responses": {
+          "204": {
+            "description": "The collections was deleted"
+          },
+          "400": {
+            "description": "The collection couldn't be deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/collections": {
+      "get": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Returns the list of all collections",
+        "operationId": "getCollections",
+        "description": "Returns the list of all collections\nNote that only collections visible to the user are included in the result.\n",
+        "responses": {
+          "200": {
+            "description": "The list of collections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Collection"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "collections"
+        ],
+        "summary": "Creates a new collection",
+        "operationId": "createCollection",
+        "requestBody": {
+          "description": "Creates a collection",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionCreateEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The just created collection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Collection"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/actionDefinitions": {
+      "get": {
+        "tags": [
+          "actions"
+        ],
+        "summary": "Returns the list of all actions defined for a robot",
+        "operationId": "getRobotActionDefinitions",
+        "description": "Returns the list of all actions defined for a robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of actions definitions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionDefinition"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/actions": {
+      "post": {
+        "tags": [
+          "actions"
+        ],
+        "summary": "Executes an action on a robot",
+        "operationId": "executeRobotAction",
+        "description": "Executes an action on a robot\n",
+        "requestBody": {
+          "description": "Action execution request",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionExecutionRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The status of the action execution",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionExecutionStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/actions/{executionId}": {
+      "get": {
+        "tags": [
+          "actions"
+        ],
+        "summary": "Queries the status of an action execution reported by a robot",
+        "operationId": "getActionExecutionStatus",
+        "description": "Queries the status of an action execution for a robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "executionId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The action executionId of a previously triggered action",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current status of the action execution",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionExecutionStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config/attributeDefinitions": {
+      "get": {
+        "tags": [
+          "attributes"
+        ],
+        "summary": "Returns all attribute definitions",
+        "operationId": "getAttributeDefinitions",
+        "description": "Returns all attribute definitions\n",
+        "responses": {
+          "200": {
+            "description": "A list with all attributes definitions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttributeDefinition"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config/attributeDefinitions/{attributeId}": {
+      "get": {
+        "tags": [
+          "attributes"
+        ],
+        "summary": "Returns an attribute definition",
+        "operationId": "getAttributeDefinition",
+        "description": "Returns an attribute definition\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attributeId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The attribute id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The attribute definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeDefinition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/maps": {
+      "get": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Retrieves a list of maps available for a robot",
+        "operationId": "getMaps",
+        "description": "Returns a list of maps available for the requested robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The current list of maps in this robot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MapMetadata"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Upload map data",
+        "operationId": "postMap",
+        "description": "![Beta](Status-Beta-yellow.svg)\n\n\n This is a multi-part request composed two parts:\n - An object which defines the map metadata\n - A PNG image of the map\n \n The bottom left corner of the image needs to match the (metadata.x, metadata.y) coordinate of the real world.\n",
+        "requestBody": {
+          "description": "Multipart request with map metadata and map image.",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SentMapMetadata"
+              },
+              "encoding": {
+                "metadata": {
+                  "contentType": "application/json"
+                },
+                "image": {
+                  "contentType": "image/png, image/jpeg"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Map saved successfully."
+          },
+          "400": {
+            "description": "Input error found in request body. Check the JSON body data before sending the request."
+          },
+          "403": {
+            "description": "You do not have access to this feature. Please contact with support@inorbit.ai if you are interested in obtaining access."
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/maps/current": {
+      "get": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Retrieves the robot's current map metadata\n",
+        "operationId": "getCurrentMap",
+        "description": "Retrieves the map metadata for the robot's current map. By default, a map metadata including size, resolution, last updated timestamp and other fields is returned in JSON format.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The current map's metadata, in JSON format.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MapMetadata"
+                  }
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "example": "137 80 78 71 13 10 26 10 ...",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to retrieve the actual map image; if served from elsewhere."
+          },
+          "304": {
+            "description": "Not Modified. The response object is empty"
+          },
+          "404": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/maps/{mapId}": {
+      "get": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Retrieves a robot's map metadata given is id\n",
+        "operationId": "getMap",
+        "description": "Retrieves an individual map's metadata or binary data. By default, a map metadata including size, resolution, last updated timestamp and other fields is returned in JSON format (see `application/json` response). By specifying `Accept: image/png` the map in binary image form can be retrieved. See also `/download` API path.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "mapId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The map id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A binary map image. Note that response `302` is more frequently implemented.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MapMetadata"
+                  }
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "example": "137 80 78 71 13 10 26 10 ...",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to retrieve the actual map image; if served from elsewhere."
+          },
+          "304": {
+            "description": "Not Modified. The response object is empty"
+          },
+          "404": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/maps/{mapId}/download": {
+      "get": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Downloads a map binary image",
+        "operationId": "downloadMap",
+        "description": "Retrieves the raw map image from a robot, given its id.\nThe resulting image is always in PNG format, with `Content-Type: image/png`.\nTo use this map, the metadata from /{mapId} API is also necessary (resolution, origin).\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "mapId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The map id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A binary map image. Note that response `302` is more frequently implemented.",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "example": "137 80 78 71 13 10 26 10 ..."
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to retrieve the actual map image; if served from elsewhere."
+          },
+          "304": {
+            "description": "Not Modified. The response object is empty.\nThis response can be returned if using `If-Modified-Since` HTTP header, and the\nmap has not been changed since the specified date.\n"
+          },
+          "404": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/localization/pose": {
+      "get": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Returns a robot's current pose",
+        "operationId": "getRobotPose",
+        "description": "Returns the pose of a robot, including position and orientation\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The current pose of a robot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RobotPose"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/localization/full": {
+      "get": {
+        "tags": [
+          "localization"
+        ],
+        "summary": "Returns all available localization data for a robot",
+        "operationId": "getRobotLocalization",
+        "description": "Returns all available localization data for a robot, including pose and lasers if available. \nIf an `include` query param is sent, only those values are returned. \n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "include",
+            "description": "Data to be included in the response. If not set, all available data is returned.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "pose",
+                  "laser",
+                  "costmap",
+                  "paths"
+                ]
+              }
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The current localization data of a robot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RobotLocalization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spaces/{locationId}/areas": {
+      "get": {
+        "tags": [
+          "spaces"
+        ],
+        "summary": "Retrieves a list of areas within a location.",
+        "operationId": "getAreas",
+        "description": "Returns information about all areas within the specified location.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "locationId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The location's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of areas",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "frameId": "25di12",
+                    "locationId": "wbL-g004XaIUvDC_",
+                    "isDefault": true,
+                    "label": "Floor 1",
+                    "defaultMapId": "0xgm4iam90x"
+                  },
+                  {
+                    "frameId": "nxz9gs",
+                    "locationId": "wbL-g004XaIUvDC_",
+                    "isDefault": false,
+                    "label": "Floor 2",
+                    "defaultMapId": "ck6u90atqqu"
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Area"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "User not authorized to access the resource"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Location not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Location not found"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spaces/{locationId}/area/{frameId}": {
+      "get": {
+        "tags": [
+          "spaces"
+        ],
+        "summary": "Retrieves information about a specific area.",
+        "operationId": "getArea",
+        "description": "Returns information about a specific area within the specified location.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "locationId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The location's id",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "frameId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The area's frameId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An area object.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "frameId": "25di12",
+                  "locationId": "wbL-g004XaIUvDC_",
+                  "isDefault": true,
+                  "label": "Floor 1",
+                  "defaultMapId": "0xgm4iam90x"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Area"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "User not authorized to access the resource"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Area not found or Location not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "areaNotFound": {
+                    "summary": "Area not found",
+                    "value": {
+                      "error": "Area not found"
+                    }
+                  },
+                  "locationNotFound": {
+                    "summary": "Location not found",
+                    "value": {
+                      "error": "Location not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/navigation/waypoints": {
+      "post": {
+        "tags": [
+          "navigation"
+        ],
+        "summary": "Sends a list of waypoints to a robot",
+        "operationId": "sendNavigationWaypoints",
+        "description": "![Beta](Status-Beta-yellow.svg)\nSends a list of navigation waypoints to a robot\n",
+        "requestBody": {
+          "description": "Waypoints list",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NavigationWaypointRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Waypoints sent to the robot successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NavigationWaypointResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Robot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mission-dispatch": {
+      "post": {
+        "tags": [
+          "missions"
+        ],
+        "summary": "Dispatches a mission for execution",
+        "operationId": "dispatchMission",
+        "description": "Dispatches a mission for execution. It can use a previously-defined mission\n[(see Mission Definition)](https://developer.inorbit.ai/docs#configuring-mission-definitions),\nidentified by `missionDefinitionId` or a one-off mission definition provided in the dispatch\nAPI call.\n",
+        "requestBody": {
+          "description": "Mission object to be created",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionDispatchRequest"
+              },
+              "examples": {
+                "one-off": {
+                  "value": {
+                    "selector": {
+                      "robotId": "amr-picker-87"
+                    },
+                    "arguments": {
+                      "skuCode": "AFG233",
+                      "quantity": 5
+                    },
+                    "missionDefinition": {
+                      "label": "Pick items for order DN1238923",
+                      "steps": [
+                        {
+                          "label": "Go to bin",
+                          "timeoutSecs": 120,
+                          "waypoint": "nw-bin-450"
+                        },
+                        {
+                          "label": "Display item to pick on screen for picking operator",
+                          "runAction": {
+                            "actionId": "display_item",
+                            "arguments": {
+                              "sku": {
+                                "_arguments": "skuCode"
+                              },
+                              "quantity": {
+                                "_arguments": "quantity"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "label": "Wait until item is picked",
+                          "timeoutSecs": 300,
+                          "waitUntil": {
+                            "expression": "getValue('item_picked_btn_pressed')"
+                          }
+                        },
+                        {
+                          "label": "Go to packing station",
+                          "timeoutSecs": 120,
+                          "waypoint": "nw-packing-station-1"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "predefined": {
+                  "value": {
+                    "selector": {
+                      "robotId": "1234567890"
+                    },
+                    "arguments": {
+                      "dockTimeout": 60,
+                      "dockRetries": 3
+                    },
+                    "missionDefinitionId": "go-to-dock"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A Mission was dispatched to a robot. This does not mean the mission has started yet.\nIts status can be queried using mission-tracking APIs, using the `missionId`\nincluded in the response.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionDispatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request. It includes errors such as invalid selectors, wrong mission format,\netc. The response contains an `error` string with the reason of the failure.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mission-dispatch/{missionId}": {
+      "delete": {
+        "tags": [
+          "missions"
+        ],
+        "summary": "Aborts a running a mission",
+        "operationId": "cancelMission",
+        "description": "Cancels currently running mission given its id.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "missionId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The running mission's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The mission was canceled successfully"
+          },
+          "400": {
+            "description": "Running mission not found error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mission-dispatch/{missionId}/execution": {
+      "put": {
+        "tags": [
+          "missions"
+        ],
+        "summary": "Pauses or resumes a mission execution",
+        "operationId": "updateMissionExecution",
+        "description": "Modifies a mission execution.\nCurrently, only pausing and resuming executions are supported. (To abort a mission, see `abortMission` API)\n",
+        "requestBody": {
+          "description": "Mission object to be created",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionExecutionUpdateRequest"
+              },
+              "examples": {
+                "pause": {
+                  "value": {
+                    "action": "pause"
+                  }
+                },
+                "resume": {
+                  "value": {
+                    "action": "resume"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "missionId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The running mission's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The mission execution was correctly updated (paused or resumed).\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionDispatch"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Execution status conflict: The mission is already paused (for action=\"pause\") or\nis already running (for action=\"resume\").\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Malformed request. It includes errors such as invalid selectors, wrong mission format,\netc. The response contains an `error` string with the reason of the failure.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions": {
+      "get": {
+        "tags": [
+          "missionTracking"
+        ],
+        "summary": "Queries missions",
+        "operationId": "findMissions",
+        "description": "Returns a list of missions that satisfy some filters\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot id"
+          },
+          {
+            "in": "query",
+            "name": "inProgress",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter missions that are in progress"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "startTs",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Search missions starting after startTs"
+          },
+          {
+            "in": "query",
+            "name": "endTs",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Search missions starting before endTs"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of missions matching the given filters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionSearchResults"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "missionTracking"
+        ],
+        "summary": "Creates a mission",
+        "operationId": "createMission",
+        "description": "Creates a mission for the robot. It returns the mission information in the response\n",
+        "requestBody": {
+          "description": "Mission object to be created",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BasicMission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "A Mission object containing all mission's attributes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Robot does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Conflict, the robot is executing another mission (and auto-ending missions is not configured)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/{missionId}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "missionId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The mission id",
+          "required": true
+        }
+      ],
+      "put": {
+        "tags": [
+          "missionTracking"
+        ],
+        "summary": "Updates a mission",
+        "operationId": "updateMission",
+        "description": "Communicates updates on a mission execution. It should be called whenever a mission status changes (has started, has finished) or any of its tasks has just been completed. Times are recorded assuming these updates are called immediately.\n",
+        "requestBody": {
+          "description": "Mission attributes to be modified",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A Mission object containing all mission's attributes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Mission does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "missionTracking"
+        ],
+        "summary": "Terminates a mission",
+        "operationId": "terminateMission",
+        "description": "Communicates that the current mission has been cancelled. It is equivalent to PUT on the same path, with\n  { status: cancelled }.\nNote: Does NOT actually delete a mission.\n",
+        "responses": {
+          "204": {
+            "description": "The mission was terminated successfully"
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Mission not found error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "missionTracking"
+        ],
+        "summary": "Retrieves a mission",
+        "operationId": "getMission",
+        "description": "Returns information about a mission\n",
+        "responses": {
+          "200": {
+            "description": "A Mission object containing all mission's attributes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Mission not found error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/zones/{locationId}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "locationId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The location id",
+          "required": true
+        },
+        {
+          "in": "query",
+          "name": "frameId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The frame id",
+          "required": false
+        }
+      ],
+      "get": {
+        "tags": [
+          "trafficManagement"
+        ],
+        "summary": "Lists the zones in a location",
+        "operationId": "getZones",
+        "description": "Lists the zones in a location. Allows filtering by area using the `frameId` query parameter.\n",
+        "responses": {
+          "200": {
+            "description": "A list of zones"
+          },
+          "401": {
+            "description": "Authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Location not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/zones/{locationId}/{zoneId}/properties": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "locationId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The zone id; unique within a location",
+          "required": true
+        },
+        {
+          "in": "path",
+          "name": "zoneId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The location id",
+          "required": true
+        }
+      ],
+      "get": {
+        "tags": [
+          "trafficManagement"
+        ],
+        "summary": "Retrieves the zone properties; including its state.",
+        "operationId": "getZoneProperties",
+        "description": "Retrieves the zone properties, as assigned by a traffic controller.\nFor example its state and robots currently inside the zone.\n",
+        "responses": {
+          "200": {
+            "description": "An object with the zone properties, including `{ state, robotIds }` (other keys may exist depending on the traffic rules assigned to the zone)."
+          },
+          "401": {
+            "description": "Authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Zone or location note found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "trafficManagement"
+        ],
+        "summary": "Updates the zone properties; including its state.",
+        "operationId": "setZoneProperties",
+        "description": "Modifies zones properties. It currently allows changing the zone \"state\", which determines the zone\nvisual representation in the app. (For example if there are `conditionalStyle` treatments in its Zone Type).\nBeware that normally traffic controllers change the `state` (and other properties), so this API is\nnormally used only with custom traffic zone types; when there is no conflict with traffic controller updates.\nIt can also be used in the implementation of custom traffic controllers.\n",
+        "requestBody": {
+          "description": "Zone properties",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserZoneProperties"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The zone was updated. The response includes all of the zone's properties"
+          },
+          "401": {
+            "description": "Authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Zone or location note found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/zones/{locationId}/{zoneId}/data": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "locationId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The zone id; unique within a location",
+          "required": true
+        },
+        {
+          "in": "path",
+          "name": "zoneId",
+          "schema": {
+            "type": "string"
+          },
+          "description": "The location id",
+          "required": true
+        }
+      ],
+      "get": {
+        "tags": [
+          "trafficManagement"
+        ],
+        "summary": "Retrieves a zone's user-defined data",
+        "operationId": "getZoneData",
+        "description": "Retrieves and returns any user-defined data appended to this Traffic Zone.\n",
+        "responses": {
+          "200": {
+            "description": "An object with user-defined data, an arbitrary key-value dictionary."
+          },
+          "401": {
+            "description": "Authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Zone or location note found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "trafficManagement"
+        ],
+        "summary": "Updates a Traffic Zone user-defined data",
+        "operationId": "addZoneData",
+        "description": "Assigns user-defined data to a Traffic Zone.\nThis data is an arbitrary key-value dictionary, which will be added to the Zone, overwriting existing data\nwith the same keys. Null values will clear (delete) existing keys.\n",
+        "requestBody": {
+          "description": "User data",
+          "required": true,
+          "content": {
+            "application/json": {}
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The zone was updated. The response includes all of the zone's user defined data"
+          },
+          "401": {
+            "description": "Authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Zone or location note found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/configuration/apply": {
+      "post": {
+        "tags": [
+          "configAPI"
+        ],
+        "summary": "Applies a configuration object",
+        "operationId": "configApply",
+        "requestBody": {
+          "description": "Applies a configuration object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration applied successfully"
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/configuration/list": {
+      "get": {
+        "tags": [
+          "configAPI"
+        ],
+        "summary": "Retrieves a list of configuration objects",
+        "operationId": "configList",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter configuration objects for the specified scope. `*` can be used\nas wildcard for filtering, for example `*`, `account` `tag/*`, `robot/*`\nare valid filers.\n"
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter configuration objects for the specified kind"
+          },
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter configuration objects for the specified id"
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "short",
+                "full"
+              ]
+            },
+            "description": "Format to use, it can be a list with a short description for each object\nor the full objects in the same format used by the apply operation.\nBy default the \"short\" format is used.\n"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuration applied successfully.\nNote that at most 200 elements are returned. If you need more elements,\nspecify a narrower scope or kind filter.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ConfigurationObjectDescriptionList"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ConfigObject"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/configuration/kinds": {
+      "get": {
+        "tags": [
+          "configAPI"
+        ],
+        "summary": "Retrieves the list of kinds",
+        "operationId": "configListKinds",
+        "responses": {
+          "200": {
+            "description": "Kinds retrieved successfully.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KindsList"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/configuration/clear": {
+      "post": {
+        "tags": [
+          "configAPI"
+        ],
+        "summary": "Clears a configuration object at a specific scope",
+        "operationId": "configClear",
+        "requestBody": {
+          "description": "Clears a configuration object at a specific scope",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigObjectClear"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration cleared successfully"
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request."
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/expressions/robot/{robotId}/eval": {
+      "post": {
+        "tags": [
+          "expressions"
+        ],
+        "summary": "Evaluates an expression",
+        "operationId": "eval",
+        "requestBody": {
+          "description": "Evaluates an expression",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpressionEvalRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result of the evaluation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpressionEvalResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the body data before sending the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpressionEvalResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/connect/activationCodes": {
+      "post": {
+        "tags": [
+          "inorbitConnect"
+        ],
+        "summary": "Generates InOrbit Connect activation codes",
+        "operationId": "generateCode",
+        "description": "![Beta](Status-Beta-yellow.svg)\n\n\n Generates an InOrbit Connect activation code for a set of robots\n",
+        "requestBody": {
+          "description": "Generates an InOrbit Connect activation code",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationCodeGenerationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Activation code generated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationCodeGenerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the JSON body data before sending the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/connect/robotKey": {
+      "post": {
+        "tags": [
+          "inorbitConnect"
+        ],
+        "summary": "Generates a robot key",
+        "operationId": "generateRobotKey",
+        "description": "![Beta](Status-Beta-yellow.svg)\n\n\n Generates a robot key for the provided InOrbit Connect certified robot\n",
+        "requestBody": {
+          "description": "Generates a robot key",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreProvisionRobotModelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Robot key generated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreProvisionRobotModelResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input error found in request body. Check the JSON body data before sending the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/connect/robot/{robotId}/model": {
+      "put": {
+        "tags": [
+          "inorbitConnect"
+        ],
+        "summary": "Sets InOrbit Connect model for robot",
+        "operationId": "setRobotModel",
+        "description": "![Beta](Status-Beta-yellow.svg)\n\n\n Assigns a valid InOrbit Connect model to the specified robot\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "InOrbit robot ID",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "description": "Sets InOrbit Connect model for robot",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RobotModelAssignmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Robot model assigned successfully."
+          },
+          "400": {
+            "description": "Input error found in request body. Check the JSON body data before sending the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error. Please wait a few minutes until it gets solved."
+          }
+        }
+      }
+    },
+    "/robots/{robotId}/cameraImages": {
+      "get": {
+        "tags": [
+          "cameraImages"
+        ],
+        "summary": "List camera images for a camera and time range",
+        "operationId": "listCameraImages",
+        "description": "Returns a list of camera images for the specified camera and time range. For each image, the\nresponse includes the timestamp and a URL that can be used to download the image. These URLs\nare already signed, so no extra authentication is required.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "robotId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The robot's id",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "cameraId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The camera id (not to be confused with the camera topic). It can be obtained from the robot's camera configuration using the Config API or the InOrbit CLI (`inorbit get config --kind RobotCamera`).",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "startTs",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The start timestamp",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "endTs",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The end timestamp",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Elements per page"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Page number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Camera images",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CameraImagesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kpis/objects": {
+      "post": {
+        "tags": [
+          "kpis"
+        ],
+        "summary": "List KPI objects",
+        "operationId": "listKpiObjects",
+        "description": "Lists KPI objects with filtering and pagination support.\nAll fields can be filtered.\n",
+        "security": [
+          {
+            "appKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KpiObjectsListRequest"
+              },
+              "examples": {
+                "basicMissionQuery": {
+                  "value": {
+                    "objectType": "mission",
+                    "startTime": 1717200000000,
+                    "endTime": 1719800000000,
+                    "offset": 0,
+                    "limit": 20
+                  }
+                },
+                "complexFiltering": {
+                  "value": {
+                    "objectType": "incident",
+                    "startTime": 1717200000000,
+                    "endTime": 1719800000000,
+                    "offset": 0,
+                    "limit": 50,
+                    "filters": [
+                      {
+                        "field": "tag",
+                        "operator": "in",
+                        "value": [
+                          "hq",
+                          "lab"
+                        ]
+                      },
+                      {
+                        "field": "data.severity",
+                        "operator": "=",
+                        "value": "high"
+                      }
+                    ]
+                  }
+                },
+                "timeRangeQuery": {
+                  "value": {
+                    "objectType": "order",
+                    "startTime": 1717200000000,
+                    "endTime": 1719800000000,
+                    "offset": 0,
+                    "limit": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of KPI objects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KpiObjectsListResponse"
+                },
+                "examples": {
+                  "example200": {
+                    "value": {
+                      "data": [
+                        {
+                          "type": "mission",
+                          "companyId": "company-123",
+                          "id": "mission-001",
+                          "entity": "robot-001",
+                          "startTs": 1717200000000,
+                          "endTs": 1717203600000,
+                          "data": {
+                            "duration": 3600,
+                            "status": "completed",
+                            "robotData": {
+                              "location": "warehouse-a"
+                            }
+                          }
+                        },
+                        {
+                          "type": "incident",
+                          "companyId": "company-123",
+                          "id": "incident-001",
+                          "entity": "robot-002",
+                          "startTs": 1717200000000,
+                          "endTs": 1717201800000,
+                          "data": {
+                            "severity": "high",
+                            "description": "Navigation error"
+                          }
+                        }
+                      ],
+                      "pagination": {
+                        "offset": 0,
+                        "limit": 20,
+                        "hasMore": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication/authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kpis/objects/aggregate": {
+      "post": {
+        "tags": [
+          "kpis"
+        ],
+        "summary": "Aggregate KPI objects",
+        "operationId": "aggregateKpiObjects",
+        "description": "Calculates aggregations over KPI objects within a time range.\n",
+        "security": [
+          {
+            "appKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KpiObjectsAggregateRequest"
+              },
+              "examples": {
+                "aggregateMissionsByRobot": {
+                  "value": {
+                    "objectType": "mission",
+                    "startTime": 1717200000000,
+                    "endTime": 1719800000000,
+                    "limit": 100,
+                    "offset": 0,
+                    "groupBy": [
+                      "robotData.collection.location"
+                    ],
+                    "aggregations": [
+                      {
+                        "operator": "COUNT",
+                        "field": "id",
+                        "alias": "totalMissions"
+                      },
+                      {
+                        "operator": "SUM",
+                        "field": "data.duration",
+                        "alias": "totalDuration"
+                      }
+                    ]
+                  }
+                },
+                "twoStageAggregation": {
+                  "value": {
+                    "objectType": "incident",
+                    "startTime": 1717200000000,
+                    "endTime": 1719800000000,
+                    "limit": 100,
+                    "offset": 0,
+                    "groupBy": [
+                      "entityId",
+                      "level"
+                    ],
+                    "aggregations": [
+                      {
+                        "operator": "COUNT",
+                        "field": "id",
+                        "alias": "total"
+                      }
+                    ],
+                    "secondAggregation": {
+                      "operator": "MAX",
+                      "field": "total",
+                      "alias": "maxPerRobot"
+                    },
+                    "secondAggregationGroupBy": [
+                      "entityId"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aggregation results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KpiObjectsAggregateResponse"
+                },
+                "examples": {
+                  "example200": {
+                    "value": {
+                      "data": [
+                        {
+                          "entityId": "r-001",
+                          "totalMissions": 42
+                        },
+                        {
+                          "entityId": "r-002",
+                          "totalMissions": 15
+                        }
+                      ],
+                      "hasMore": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication/authorization error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "appKey": {
+        "type": "apiKey",
+        "description": "InOrbit appKey authenticates API requests using a token.\n\nYou can obtain your appKey in the [Developer Portal](https://developer.inorbit.ai/).\n",
+        "in": "header",
+        "name": "x-auth-inorbit-app-key"
+      }
+    },
+    "schemas": {
+      "Robot": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "agentOnline",
+          "agentVersion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "agentOnline": {
+            "type": "boolean"
+          },
+          "agentVersion": {
+            "type": "string"
+          },
+          "updatedTs": {
+            "type": "integer"
+          }
+        }
+      },
+      "RobotListItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "agentOnline",
+          "agentVersion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "agentOnline": {
+            "type": "boolean"
+          },
+          "agentVersion": {
+            "type": "string"
+          },
+          "updatedTs": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "description": "Optional list of tags associated with the robot. Only included when requested.",
+            "items": {
+              "$ref": "#/components/schemas/RobotTag"
+            }
+          },
+          "localization": {
+            "type": "object",
+            "description": "Optional limited localization data for the robot. Only included when requested.",
+            "properties": {
+              "pose": {
+                "type": "object",
+                "properties": {
+                  "frameId": {
+                    "type": "string"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "theta": {
+                    "type": "number"
+                  },
+                  "ts": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RobotTag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the tag"
+          },
+          "name": {
+            "description": "Tag name",
+            "type": "string"
+          },
+          "collectionId": {
+            "description": "Id of the collection this tag belongs to",
+            "type": "string"
+          },
+          "collectionName": {
+            "description": "Collection name",
+            "type": "string"
+          }
+        }
+      },
+      "TagRobotByTagId": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the tag"
+          }
+        }
+      },
+      "TagRobotByTagName": {
+        "type": "object",
+        "required": [
+          "tagName"
+        ],
+        "properties": {
+          "tagName": {
+            "description": "Tag name",
+            "type": "string"
+          },
+          "collectionName": {
+            "description": "Optional collection name",
+            "type": "string"
+          }
+        }
+      },
+      "AttributeValue": {
+        "type": "object",
+        "required": [
+          "attribute",
+          "value",
+          "ts"
+        ],
+        "properties": {
+          "attribute": {
+            "type": "string",
+            "description": "Attribute id"
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Attribute value"
+          },
+          "ts": {
+            "type": "integer",
+            "description": "Last update timestamp"
+          }
+        }
+      },
+      "AttributeTimeRangeResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/AttributeValueItem"
+              }
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Maximum number of items per page"
+              },
+              "page": {
+                "type": "integer",
+                "description": "Current page number"
+              },
+              "hasMorePages": {
+                "type": "boolean",
+                "description": "Indicates if there are more pages"
+              }
+            }
+          }
+        }
+      },
+      "AttributeValueItem": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "integer",
+            "description": "Timestamp in milliseconds"
+          },
+          "value": {
+            "description": "Value of the attribute at the ts time"
+          }
+        }
+      },
+      "AttributeDefinition": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Attribute id"
+          },
+          "label": {
+            "type": "string",
+            "description": "User-defined label"
+          },
+          "mapping": {
+            "type": "object",
+            "description": "Defines the mapping from a robot data source",
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "Identifies the type of data source for this attribute.<br>\nAccepted values include 'key-value' for values reported in ROS topics;\n'diagnostics' for elements retrieved from ROS diagnostics;\n'file' for file contents retrieved from filesystem. <br>\nEach source type may contain different additional fields.\n"
+              },
+              "key": {
+                "type": "string",
+                "description": "The 'key' for key-value sources, as well as for ROS diagnostics."
+              },
+              "topic": {
+                "type": "string",
+                "description": "Optional, the ROS topic from which a key-value source is captured. Defaults to /inorbit/custom_data/0"
+              },
+              "namespace": {
+                "type": "string",
+                "description": "The route (namespace) in the ROS diagnostics tree"
+              }
+            }
+          }
+        }
+      },
+      "RobotLockedResult": {
+        "type": "object",
+        "required": [
+          "locked",
+          "lockedForUser"
+        ],
+        "properties": {
+          "locked": {
+            "$ref": "#/components/schemas/Lock"
+          },
+          "lockedForUser": {
+            "type": "boolean",
+            "description": "Is there any lock that does not allow the user to use the robot ?"
+          }
+        }
+      },
+      "RobotNotLockedResult": {
+        "type": "object",
+        "required": [
+          "locked",
+          "lockedForUser"
+        ],
+        "properties": {
+          "locked": {
+            "type": "boolean",
+            "description": "Indicates if the robot is locked"
+          },
+          "lockedForUser": {
+            "type": "boolean",
+            "description": "Is there any lock that does not allow the user to use the robot ?"
+          }
+        }
+      },
+      "Lock": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "locked": {
+            "type": "boolean"
+          },
+          "ts": {
+            "type": "integer"
+          },
+          "expirationTs": {
+            "type": "integer"
+          }
+        }
+      },
+      "RobotAuditLogEvent": {
+        "type": "object",
+        "required": [
+          "ts",
+          "message"
+        ],
+        "properties": {
+          "ts": {
+            "type": "integer",
+            "description": "Event timestamp"
+          },
+          "message": {
+            "type": "string",
+            "description": "Event log message"
+          }
+        }
+      },
+      "Incident": {
+        "type": "object",
+        "required": [
+          "triggerId",
+          "alias",
+          "level",
+          "label",
+          "message"
+        ],
+        "properties": {
+          "triggerId": {
+            "type": "string",
+            "description": "Trigger as shown in InOrbit Settings -> Insights -> Incidents screen."
+          },
+          "alias": {
+            "type": "string",
+            "description": "The incident alias serves as the incident identifier and deduplication\nkey. The caller can choose any value, like for example a related\nincident id in another incident management system.\n"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning"
+            ],
+            "description": "Incident level"
+          },
+          "label": {
+            "type": "string",
+            "description": "Incident label to use in the incidents list"
+          },
+          "message": {
+            "type": "string",
+            "description": "Incident message"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "CollectionCreateEdit": {
+        "description": "A collection that can be used to group robots using a set of tags",
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Collection name"
+          }
+        }
+      },
+      "Collection": {
+        "description": "A collection that can be used to group robots using a set of tags",
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "tags"
+        ],
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the collection",
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Collection name"
+          },
+          "tags": {
+            "type": "array",
+            "description": "List of tags defined for this collections",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          }
+        }
+      },
+      "Tag": {
+        "description": "A tag that can be used to organize robots in a collection",
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the tag",
+            "type": "string"
+          },
+          "name": {
+            "description": "Tag name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Tag description",
+            "type": "string"
+          },
+          "collectionId": {
+            "description": "Id of the collection this tag belongs to",
+            "type": "string"
+          }
+        }
+      },
+      "TagCreateEdit": {
+        "description": "A tag that can be used to organize robots in a collection",
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "description": "Tag name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Tag description",
+            "type": "string"
+          }
+        }
+      },
+      "ActionDefinition": {
+        "description": "A robot action definition",
+        "type": "object",
+        "properties": {
+          "actionId": {
+            "type": "string",
+            "description": "ID of the action definition"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of action",
+            "enum": [
+              "PublishToTopic",
+              "RunScript"
+            ]
+          },
+          "label": {
+            "description": "Action descriptive label",
+            "type": "string"
+          },
+          "parameters": {
+            "type": "array",
+            "description": "List of expected parameters and their types",
+            "items": {
+              "$ref": "#/components/schemas/ActionDefinitionParameter"
+            }
+          },
+          "requiresLock": {
+            "type": "boolean",
+            "description": "True if the robot must be locked by the caller before triggering this action"
+          }
+        }
+      },
+      "ActionDefinitionParameter": {
+        "description": "A robot action definition parameter",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Parameter name",
+            "type": "string"
+          },
+          "type": {
+            "description": "Parameter type",
+            "type": "string"
+          },
+          "default": {
+            "description": "Parameter default value"
+          }
+        }
+      },
+      "ActionExecutionRequest": {
+        "description": "A robot action execution request",
+        "type": "object",
+        "properties": {
+          "actionId": {
+            "type": "string",
+            "description": "ID of the action definition to be executed"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Parameters to be used to execute the action",
+            "example": {
+              "param1": "some value",
+              "param2": "otherValue"
+            }
+          }
+        }
+      },
+      "ActionExecutionStatus": {
+        "description": "An action execution status, including return code and outputs",
+        "type": "object",
+        "required": [
+          "status",
+          "startTs",
+          "lastUpdateTs"
+        ],
+        "properties": {
+          "executionId": {
+            "type": "string",
+            "description": "ID that identifies the action execution and can be used to later query it's status.\nOnly the execution of actions of type RunScript have an associated `executionId`.\n"
+          },
+          "status": {
+            "type": "string",
+            "description": "Execution status",
+            "enum": [
+              "started",
+              "finished",
+              "aborted"
+            ]
+          },
+          "statusDetails": {
+            "type": "string",
+            "description": "Optional extra information related to the status"
+          },
+          "startTs": {
+            "type": "integer",
+            "description": "timestamp (unix epoch millis) when the action execution started"
+          },
+          "lastUpdateTs": {
+            "type": "integer",
+            "description": "timestamp (unix epoch millis) when the action status was last updated"
+          },
+          "returnCode": {
+            "type": "integer"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "stdout": {
+            "type": "string"
+          }
+        }
+      },
+      "SentMapMetadata": {
+        "type": "object",
+        "required": [
+          "metadata",
+          "image"
+        ],
+        "properties": {
+          "metadata": {
+            "type": "string",
+            "description": "A JSON string containing the map metadata object with the following properties:\n- mapId (string, required): The map identifier\n- label (string, required): The map label\n- frameId (string, optional): The frame identifier\n- resolution (number, required): Map resolution\n- x (number, required): Map origin X coordinate\n- y (number, required): Map origin Y coordinate\n- formatVersion (number, optional): Map format version. If not provided, it defaults to 1.\n",
+            "example": "{\"mapId\":\"test-map-api\",\"label\":\"map\",\"frameId\":\"map\",\"resolution\":0.05,\"x\":0.0,\"y\":0.0,\"formatVersion\":2}"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "Map image in PNG or JPEG format"
+          }
+        }
+      },
+      "MapMetadataInput": {
+        "type": "object",
+        "required": [
+          "mapId",
+          "label",
+          "resolution",
+          "x",
+          "y"
+        ],
+        "properties": {
+          "mapId": {
+            "type": "string"
+          },
+          "frameId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "number",
+            "description": "Map resolution in meters per pixel"
+          },
+          "x": {
+            "type": "number",
+            "description": "Map origin, X"
+          },
+          "y": {
+            "type": "number",
+            "description": "Map origin, Y"
+          },
+          "formatVersion": {
+            "nullable": true,
+            "type": "number",
+            "description": "Map format version. If not provided, it defaults to 1.\nThis field is used to determine the way the map is displayed. Version 2 displays the map\nas uploaded, while version 1 mirrors the image vertically before displaying it.\n"
+          }
+        }
+      },
+      "MapMetadata": {
+        "type": "object",
+        "properties": {
+          "robotId": {
+            "type": "string",
+            "description": "Unique robot ID"
+          },
+          "mapId": {
+            "type": "string",
+            "description": "Map ID (unique only within robot)"
+          },
+          "frameId": {
+            "type": "string",
+            "description": "Frame ID (unique only within robot)"
+          },
+          "label": {
+            "type": "string",
+            "description": "Map label (usually corresponds to ROS topic)"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Map width, in pixels"
+          },
+          "height": {
+            "type": "integer",
+            "description": "Map height, in pixels"
+          },
+          "resolution": {
+            "type": "number",
+            "description": "Map resolution"
+          },
+          "x": {
+            "type": "number",
+            "description": "Map origin, X"
+          },
+          "y": {
+            "type": "number",
+            "description": "Map origin, Y"
+          },
+          "dataHash": {
+            "type": "string",
+            "description": "Internal data hash. Can be safely used to determine if map has been modified."
+          },
+          "formatVersion": {
+            "type": "number",
+            "description": "Map format version. If not provided, it defaults to 1.\nThis field is used to determine the way the map is displayed. Version 2 displays the map\nas uploaded, while version 1 mirrors the image vertically before displaying it.\n"
+          },
+          "updatedTs": {
+            "type": "number",
+            "description": "Latest modification timestamp (unix epoch millis)"
+          }
+        }
+      },
+      "RobotPose": {
+        "description": "Robot position and orientation",
+        "type": "object",
+        "properties": {
+          "mapId": {
+            "type": "string",
+            "description": "ID of the map that the robot was using when it last reported the pose"
+          },
+          "mapDataHash": {
+            "type": "string",
+            "description": "Map internal data hash. Can be safely used to determine if map has been modified."
+          },
+          "x": {
+            "type": "number",
+            "description": "Robot pose X coordinate"
+          },
+          "y": {
+            "type": "number",
+            "description": "Robot pose Y coordinate"
+          },
+          "theta": {
+            "type": "number",
+            "description": "Robot orientation"
+          },
+          "ts": {
+            "type": "number",
+            "description": "timestamp (unix epoch millis) when the pose was reported by the robot"
+          },
+          "xPixels": {
+            "type": "number",
+            "description": "Robot pose.x in pixels"
+          },
+          "yPixels": {
+            "type": "number",
+            "description": "Robot pose.y in pixels (following [right-hand rule](https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates) 0 is the bottom)"
+          }
+        }
+      },
+      "RobotLocalization": {
+        "type": "object",
+        "properties": {
+          "pose": {
+            "$ref": "#/components/schemas/RobotPose"
+          },
+          "lasers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaserData"
+            }
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Path"
+            }
+          },
+          "costmap": {
+            "$ref": "#/components/schemas/CostMap"
+          }
+        }
+      },
+      "CostMap": {
+        "type": "object",
+        "description": "TBD",
+        "properties": {
+          "ts": {
+            "type": "number",
+            "description": "timestamp (unix epoch millis) when the costmap was reported by the robot"
+          }
+        }
+      },
+      "LaserData": {
+        "description": "All laser's coordinates in relation to the Robot's position.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Laser id"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "description": "Laser runs"
+            }
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "description": "Laser values"
+            }
+          },
+          "ts": {
+            "type": "number",
+            "description": "timestamp (unix epoch millis) when the laser data was reported by the robot"
+          }
+        }
+      },
+      "Path": {
+        "description": "A path from a robot navigation stack",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Path id"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "Laser pose X coordinate"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Laser pose Y coordinate"
+                }
+              }
+            }
+          },
+          "ts": {
+            "type": "number",
+            "description": "timestamp (unix epoch millis) when the path data was reported by the robot"
+          }
+        }
+      },
+      "Area": {
+        "type": "object",
+        "required": [
+          "frameId",
+          "locationId",
+          "isDefault",
+          "label"
+        ],
+        "properties": {
+          "frameId": {
+            "type": "string",
+            "description": "Corresponding frameId for the area. Areas are uniquely identified by their locationId and frameId together. Robots may publish to a different frameId, which can be translated to the frameId of the area via a SpatialTransformation.\n"
+          },
+          "locationId": {
+            "type": "string",
+            "description": "Unique identifier of the location containing this area"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this area is the default area for the location"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label for the area"
+          },
+          "defaultMapId": {
+            "type": "string",
+            "description": "Identifier of the default map associated with this area"
+          }
+        }
+      },
+      "NavigationWaypointRequest": {
+        "description": "A navigation waypoint request",
+        "type": "object",
+        "required": [
+          "waypoints"
+        ],
+        "properties": {
+          "waypoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NavigationWaypoint"
+            }
+          }
+        }
+      },
+      "NavigationWaypointResponse": {
+        "description": "Response to a successfully issued navigation command",
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Additional data about the command execution, like for example if the robot was automatically locked."
+          }
+        }
+      },
+      "NavigationWaypoint": {
+        "description": "A navigation waypoint",
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "theta"
+        ],
+        "properties": {
+          "frameId": {
+            "type": "string",
+            "description": "Reference frame id. This field is optional, if omitted the current frame of the robot is used"
+          },
+          "x": {
+            "type": "number",
+            "description": "Waypoint x coordinate"
+          },
+          "y": {
+            "type": "number",
+            "description": "Waypoint y coordinate"
+          },
+          "theta": {
+            "type": "number",
+            "description": "Waypoint yaw angle in radians"
+          }
+        }
+      },
+      "MissionDispatch": {
+        "type": "object",
+        "properties": {
+          "missionId": {
+            "type": "string",
+            "description": "Unique id of mission created. It can be tracked using Mission Tracking API.s\n"
+          }
+        }
+      },
+      "MissionDispatchRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/PredefinedMissionDispatchRequest"
+          },
+          {
+            "$ref": "#/components/schemas/OneOffMissionDispatchRequest"
+          }
+        ]
+      },
+      "MissionDispatchBaseRequest": {
+        "type": "object",
+        "properties": {
+          "selector": {
+            "type": "object",
+            "description": "Criteria to select a robot to execute the mission. Currently, only `robot` criteria are permitted, being an object with one or more the following: `robotId` (a specific robot), `robotIds` (a list of robots) or `tagIds` (a list of tags, e.g. robot models, or versions, to obtain the list of possible robots). In case of multiple robots, the platform which decide which robot is the best to execute the mission.\n",
+            "properties": {
+              "robotId": {
+                "type": "string"
+              },
+              "robotIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "tagIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "arguments": {
+            "type": "object",
+            "description": "Optional. A key-value dictionary of user-defined parameters for this mission.\n"
+          }
+        }
+      },
+      "OneOffMissionDispatchRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MissionDispatchBaseRequest"
+          },
+          {
+            "type": "object",
+            "required": [
+              "missionDefinition"
+            ],
+            "properties": {
+              "missionDefinition": {
+                "type": "object",
+                "description": "A mission definition. Must match the schema of a `spec` as defined in [(Mission Definition)](https://developer.inorbit.ai/docs#configuring-mission-definitions)\n"
+              }
+            }
+          }
+        ]
+      },
+      "PredefinedMissionDispatchRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MissionDispatchBaseRequest"
+          },
+          {
+            "type": "object",
+            "required": [
+              "missionDefinitionId"
+            ],
+            "properties": {
+              "missionDefinitionId": {
+                "type": "string",
+                "description": "Identifies a previously created mission definition, to be executed."
+              }
+            }
+          }
+        ]
+      },
+      "MissionExecutionUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "pause",
+              "resume"
+            ]
+          }
+        }
+      },
+      "MissionUpdate": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "_Optional._ Mission status (error, warning, ok). Most of the times this value is not needed; it will be derived from `status` and other fields.\n"
+          },
+          "state": {
+            "type": "string",
+            "description": "_Optional._ Mission state. For example \"running\", \"stuck\", \"late\". Mostly customer-dependent; although some states will have their own semantics (configurable).\n"
+          },
+          "robotId": {
+            "type": "string",
+            "description": "_Optional._ Assigns the mission to a specific robot. It can only be used when a mission has not yet been started.\n"
+          },
+          "currentTaskId": {
+            "type": "string",
+            "description": "Updates the task currently being executed by the robot. When updating this values, other fields are also automatically updated (such as start or end time of tasks, and overall mission progress percentage).\n"
+          },
+          "inProgress": {
+            "type": "boolean",
+            "description": "_Optional._ Whether this mission is still running. When `inProgress` is first changed to true, a `startTs` value is updated; and when changed from true to false, the `endTs` field is updated.\n"
+          },
+          "label": {
+            "type": "string",
+            "description": "_Optional._ Mission description (in the PUT call, mission can be renamed)."
+          },
+          "startTs": {
+            "type": "number",
+            "description": "_Optional._ Start time (milliseconds, epoch time). Updates the time the mission actually started. Note that there is no need to update it manually if the flag `inProgress` is used in POST and PUT calls.\n"
+          },
+          "endTs": {
+            "type": "number",
+            "description": "_Optional._ End time (milliseconds, epoch time). Updates the time the mission ended. Note that there is no need to update it manually if the flag `inProgress` is used in PUT calls.\n"
+          },
+          "completedPercent": {
+            "type": "number",
+            "description": "_Optional._ Progress of the mission; number from 0.0 to 1.0. This value can be explicitly updated; but in most cases it is not necessary: it can be calculated based on completed tasks and milestones and their declared duration.\n"
+          },
+          "estimatedDurationSecs": {
+            "type": "number",
+            "description": "_Optional._ Updates the mission estimated duration (in seconds).\n"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "taskId"
+              ],
+              "properties": {
+                "taskId": {
+                  "type": "string",
+                  "description": "Identifies which task object to update"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "_Optional._ Updates the status of the task (error, warning, ok)"
+                },
+                "inProgress": {
+                  "type": "boolean",
+                  "description": "_Optional._ Marks this task as currently in progress. It can sometimes be automatically set to true, by updating the mission `currentTaskId` field."
+                },
+                "completed": {
+                  "type": "boolean",
+                  "description": "_Optional._ Marks this task as complete or incomplete"
+                },
+                "estimatedDurationSecs": {
+                  "type": "number",
+                  "description": "_Optional._ Updates the tasks estimated duration (in seconds)."
+                }
+              }
+            },
+            "description": "Array of task objects to perform point-wise updates on mission tasks. Not all tasks in the mission are required to appear; only those to be updated. The `taskId` field in each task object identifies the task (it must exist in the original mission creation) and a few other fields are allowed to be updated.\n"
+          }
+        }
+      },
+      "BasicMission": {
+        "type": "object",
+        "required": [
+          "robotId"
+        ],
+        "properties": {
+          "missionId": {
+            "type": "string",
+            "description": "Unique mission id"
+          },
+          "robotId": {
+            "type": "string",
+            "description": "_Optional._ The id of the robot associated to this mission. It can only be omitted for missions that have not yet been started.\n"
+          },
+          "status": {
+            "type": "string",
+            "description": "_Optional._ Mission status (error, warning, ok). Most of the times this value is not needed; it will be derived from `status` and other fields.\n"
+          },
+          "state": {
+            "type": "string",
+            "description": "_Optional._ Mission state. For example \"running\", \"stuck\", \"late\". Mostly customer-dependent; although some states will have their own semantics (configurable).\n"
+          },
+          "inProgress": {
+            "type": "boolean",
+            "description": "_Optional._ Whether this mission is still running. When `inProgress` is first changed to true, a `startTs` value is updated; and when changed from true to false, the `endTs` field is updated.\n"
+          },
+          "label": {
+            "type": "string",
+            "description": "_Optional._ Mission description (in the PUT call, mission can be renamed)."
+          },
+          "createdTs": {
+            "type": "number",
+            "description": "_Optional._ Creation time of a mission. It can only be set during mission creation. It defaults to current timestamp.\n"
+          },
+          "startTs": {
+            "type": "number",
+            "description": "_Optional._ Start time (milliseconds, epoch time). Updates the time the mission actually started. Note that there is no need to update it manually if the flag `inProgress` is used in POST and PUT calls.\n"
+          },
+          "endTs": {
+            "type": "number",
+            "description": "_Optional._ End time (milliseconds, epoch time). Updates the time the mission ended. Note that there is no need to update it manually if the flag `inProgress` is used in PUT calls.\n"
+          },
+          "completedPercent": {
+            "type": "number",
+            "description": "_Optional._ Progress of the mission; number from 0.0 to 1.0. This value can be explicitly updated; but in most cases it is not necessary: it can be calculated based on completed tasks and milestones and their declared duration.\n"
+          },
+          "estimatedDurationSecs": {
+            "type": "number",
+            "description": "_Optional._ Updates the mission estimated duration (in seconds).\n"
+          },
+          "tasks": {
+            "type": "array",
+            "description": "List of mission tasks",
+            "items": {
+              "$ref": "#/components/schemas/Task"
+            }
+          },
+          "arguments": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Arguments passed to this mission. Free-form, key-value dictionary."
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Metadata associated to this mission; including telemetry or results collected while running the mission. Free-form, key-value dictionary."
+          }
+        }
+      },
+      "MissionSearchResults": {
+        "type": "object",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "missions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BasicMission"
+                },
+                "description": "List of missions satisfying search criteria"
+              }
+            }
+          }
+        ]
+      },
+      "Mission": {
+        "required": [
+          "missionId",
+          "inProgress",
+          "status",
+          "createdTs",
+          "tasks"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BasicMission"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "inProgress": {
+                "type": "boolean",
+                "description": "Is the robot currently executing the mission ?"
+              },
+              "createdTs": {
+                "type": "number",
+                "description": "Mission creation timestamp"
+              },
+              "updatedTs": {
+                "type": "number",
+                "description": "Mission last update timestamp"
+              },
+              "startTs": {
+                "type": "number",
+                "description": "Mission last update timestamp"
+              },
+              "endTs": {
+                "type": "number",
+                "description": "Mission last update timestamp"
+              },
+              "completedPercent": {
+                "type": "number",
+                "description": "Progress of the mission"
+              },
+              "currentTaskId": {
+                "type": "string",
+                "description": "Id of the task currently being executed by the robot"
+              }
+            }
+          }
+        ]
+      },
+      "Task": {
+        "type": "object",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "Task id"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the task (error, warning, ok)"
+          },
+          "inProgress": {
+            "type": "boolean",
+            "description": "Marks this task as currently in progress. It can sometimes be automatically set to true, by updating the mission `currentTaskId` field."
+          },
+          "completed": {
+            "type": "boolean",
+            "description": "Marks this task as complete or incomplete"
+          },
+          "label": {
+            "type": "string",
+            "description": "Task label"
+          },
+          "updatedTs": {
+            "type": "number",
+            "description": "Task last update timestamp"
+          },
+          "startTs": {
+            "type": "number",
+            "description": "Task last update timestamp"
+          },
+          "endTs": {
+            "type": "number",
+            "description": "Task last update timestamp"
+          },
+          "completedPercent": {
+            "type": "number",
+            "description": "Task of the mission"
+          },
+          "estimatedDurationSecs": {
+            "type": "number",
+            "description": "Task estimated duration in seconds"
+          },
+          "type": {
+            "type": "string",
+            "description": "Task type. Some types (e.g. \"navigation\") will receive special treatment in the API, for example assuming the task will finish as approaching a destination navigation point.",
+            "enum": [
+              "navigation"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Arguments passed to this task. Free-form, key-value dictionary."
+          }
+        }
+      },
+      "UserZoneProperties": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "KindsList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KindItem"
+            }
+          }
+        }
+      },
+      "KindItem": {
+        "type": "string",
+        "description": "Possible kind for a configuration Object"
+      },
+      "ConfigurationObjectDescriptionList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConfigurationObjectDescriptionListItem"
+            }
+          }
+        }
+      },
+      "ConfigurationObjectDescriptionListItem": {
+        "type": "object",
+        "required": [
+          "scope",
+          "kind",
+          "id"
+        ],
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "Configuration scope"
+          },
+          "kind": {
+            "type": "string",
+            "description": "Object kind"
+          },
+          "id": {
+            "type": "string",
+            "description": "Object id"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human readable label"
+          },
+          "suppressed": {
+            "type": "boolean",
+            "description": "Flag to indicate that the configuration is suppressed for this scope"
+          }
+        }
+      },
+      "ConfigObjectMetadata": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "This configuration object id. If the same id appears in other levels\nof the config hierarchy, the precedence rules are used to choose the\ndefinition that will be used for each robot.\n"
+          },
+          "scope": {
+            "type": "string",
+            "description": "Scope of this configuration object. For example tag/prod or robot/THE_ROBOT_ID.\nThe default value is \"account\".\n",
+            "example": "tag/prod",
+            "enum": [
+              "account",
+              "tag/*",
+              "robot/*"
+            ]
+          }
+        }
+      },
+      "ConfigObjectClear": {
+        "type": "object",
+        "required": [
+          "kind",
+          "metadata",
+          "apiVersion"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Configuration object kind",
+            "enum": [
+              "IncidentDefinition"
+            ]
+          },
+          "apiVersion": {
+            "type": "string",
+            "description": "Configuration object API version",
+            "enum": [
+              "v0.1"
+            ]
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ConfigObjectMetadata"
+          }
+        }
+      },
+      "ConfigObject": {
+        "type": "object",
+        "required": [
+          "kind",
+          "metadata",
+          "spec",
+          "apiVersion"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Configuration object kind",
+            "enum": [
+              "IncidentDefinition"
+            ]
+          },
+          "apiVersion": {
+            "type": "string",
+            "description": "Configuration object API version",
+            "enum": [
+              "v0.1"
+            ]
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ConfigObjectMetadata"
+          },
+          "spec": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ConfigIncidentDefinitionSpec"
+              }
+            ]
+          }
+        }
+      },
+      "ConfigIncidentDefinitionSpec": {
+        "type": "object",
+        "required": [
+          "statusId",
+          "label",
+          "warning",
+          "error"
+        ],
+        "properties": {
+          "statusId": {
+            "type": "string",
+            "description": "Id of the status that triggers this incident. Note that currently this must\nalso match the configuration object id.\n"
+          },
+          "label": {
+            "type": "string",
+            "description": "Incident definition label"
+          },
+          "labelTemplate": {
+            "type": "string",
+            "description": "Optional template to generate labels, using custom_data values. For\nFor example: \"There was an incident in {{custom_data_source_name}}\"\n"
+          },
+          "warning": {
+            "type": "object",
+            "description": "Rules to apply when the status is in warning condition",
+            "required": [
+              "notificationChannels",
+              "autoActions",
+              "manualActions",
+              "severity"
+            ],
+            "properties": {
+              "notificationChannels": {
+                "type": "array",
+                "description": "List of channels that must be used to notify about these incidents",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "autoActions": {
+                "type": "array",
+                "description": "List of actions that must run automatically when the incident triggers",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "manualActions": {
+                "type": "array",
+                "description": "List of actions that users can manually run when the incident triggers",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "severity": {
+                "description": "Severity of the incident when status is in warning condition",
+                "type": "string",
+                "enum": [
+                  "SEV0",
+                  "SEV1",
+                  "SEV2",
+                  "SEV3"
+                ]
+              }
+            }
+          },
+          "error": {
+            "type": "object",
+            "description": "Rules to apply when the status is in error condition",
+            "required": [
+              "notificationChannels",
+              "autoActions",
+              "manualActions",
+              "severity"
+            ],
+            "properties": {
+              "notificationChannels": {
+                "type": "array",
+                "description": "List of channels that must be used to notify about these incidents",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "autoActions": {
+                "type": "array",
+                "description": "List of actions that must run automatically when the incident triggers",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "manualActions": {
+                "type": "array",
+                "description": "List of actions that users can manually run when the incident triggers",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "severity": {
+                "description": "Severity of the incident when status is in error condition",
+                "type": "string",
+                "enum": [
+                  "SEV0",
+                  "SEV1",
+                  "SEV2",
+                  "SEV3"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ExpressionEvalResult": {
+        "description": "Result of evaluating an expression",
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Flag that indicates if the expression was evaluated without errors"
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array"
+              }
+            ],
+            "description": "Result of the evaluation. The type depends on the result of the evaluated expression.\n"
+          },
+          "message": {
+            "type": "string",
+            "description": "Information about errors (if any)"
+          }
+        }
+      },
+      "ExpressionEvalRequest": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "Expression to be evaluated.\nSee [expressions language reference](https://developer.inorbit.ai/docs#expressions-language)\n"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "A dictionary of data robot source values. They will be used as if they were the current\nvalues for those data sources at the time of evaluating the expression.\nUseful for testing scenarios and expressions without having to send actual data from\nrobots.\n"
+          }
+        }
+      },
+      "PreProvisionRobotModelRequest": {
+        "type": "object",
+        "required": [
+          "robotModel"
+        ],
+        "properties": {
+          "robotModel": {
+            "type": "string",
+            "description": "InOrbit Connect certified robot model"
+          }
+        }
+      },
+      "PreProvisionRobotModelResponse": {
+        "type": "object",
+        "required": [
+          "robotKey"
+        ],
+        "properties": {
+          "robotKey": {
+            "type": "string",
+            "description": "InOrbit robot key"
+          }
+        }
+      },
+      "RobotModelAssignmentRequest": {
+        "type": "object",
+        "required": [
+          "robotModel"
+        ],
+        "properties": {
+          "robotModel": {
+            "type": "string",
+            "description": "InOrbit Connect certified robot model"
+          }
+        }
+      },
+      "ActivationCodeGenerationRequest": {
+        "type": "object",
+        "required": [
+          "robotIds"
+        ],
+        "properties": {
+          "robotIds": {
+            "type": "array",
+            "description": "List of robot ids that will be associated using the code",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ActivationCodeGenerationResponse": {
+        "type": "object",
+        "required": [
+          "activationCode"
+        ],
+        "properties": {
+          "activationCode": {
+            "type": "string",
+            "description": "Generated activation code"
+          },
+          "robotIds": {
+            "type": "array",
+            "description": "List of robot ids that will be associated using this code",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CameraImagesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CameraImageItem"
+              }
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Maximum number of items per page"
+              },
+              "page": {
+                "type": "integer",
+                "description": "Current page number"
+              },
+              "hasMorePages": {
+                "type": "boolean",
+                "description": "Indicates if there are more pages"
+              }
+            }
+          }
+        }
+      },
+      "CameraImageItem": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "integer",
+            "description": "Timestamp in milliseconds"
+          },
+          "url": {
+            "description": "URL that can be used to download the image. These URLs are pre-signed, so no extra authentication is required to fetch the images. The urls in this object are valid for 1 hour after this API is call."
+          }
+        }
+      },
+      "KpiObject": {
+        "type": "object",
+        "required": [
+          "type",
+          "companyId",
+          "id",
+          "entity",
+          "startTs",
+          "endTs",
+          "data",
+          "tags"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the KPI object (e.g., mission, incident, order)"
+          },
+          "companyId": {
+            "type": "string",
+            "description": "The company ID of the KPI object"
+          },
+          "id": {
+            "type": "string",
+            "description": "The unique ID of the KPI object"
+          },
+          "entity": {
+            "type": "string",
+            "description": "The entity of the KPI object"
+          },
+          "startTs": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The start timestamp of the KPI object in milliseconds"
+          },
+          "endTs": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The end timestamp of the KPI object in milliseconds"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Free form JSON data of the KPI object"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of tags associated with the KPI object"
+          }
+        }
+      },
+      "KpiObjectsListRequest": {
+        "type": "object",
+        "required": [
+          "objectType",
+          "startTime",
+          "endTime",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "objectType": {
+            "type": "string",
+            "description": "KPI object type (e.g., mission, incident, order)"
+          },
+          "startTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Start timestamp in milliseconds"
+          },
+          "endTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "End timestamp in milliseconds"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Maximum number of records to return"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of records to skip"
+          },
+          "filters": {
+            "type": "array",
+            "description": "Optional filters to apply on fields",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "Field to order results by"
+          }
+        }
+      },
+      "KpiObjectsListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "pagination"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KpiObject"
+            },
+            "description": "Array of KPI objects"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationInfo"
+          }
+        }
+      },
+      "PaginationInfo": {
+        "type": "object",
+        "required": [
+          "offset",
+          "limit",
+          "total",
+          "hasMore"
+        ],
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of records skipped"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Maximum number of records returned"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of records matching the criteria"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are more records available"
+          }
+        }
+      },
+      "KpiObjectsAggregateRequest": {
+        "type": "object",
+        "required": [
+          "objectType",
+          "startTime",
+          "endTime",
+          "limit",
+          "offset",
+          "aggregations"
+        ],
+        "properties": {
+          "objectType": {
+            "type": "string",
+            "description": "KPI object type (e.g., mission, incident)"
+          },
+          "startTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Start timestamp in milliseconds"
+          },
+          "endTime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "End timestamp in milliseconds"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Maximum number of records to return"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of records to skip"
+          },
+          "intervalMinutes": {
+            "type": "integer",
+            
+            "description": "Interval for time aggregations"
+          },
+          "filters": {
+            "type": "array",
+            "description": "Optional filters to apply on fields",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
+          },
+          "aggregations": {
+            "type": "array",
+            "description": "List of aggregations",
+            "items": {
+              "$ref": "#/components/schemas/Aggregation"
+            }
+          },
+          "groupBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Fields to group results by. To group by tags in a given collection with COLLECTION_ID\nuse \"robotData.collection.${COLLECTION_ID}\"\n"
+          },
+          "secondAggregation": {
+            "$ref": "#/components/schemas/SecondAggregation"
+          },
+          "secondAggregationGroupBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Fields to group results by for the second aggregation.\nOnly valid when secondAggregation is specified.\n"
+          }
+        }
+      },
+      "Aggregation": {
+        "type": "object",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Field to aggregate on"
+          },
+          "alias": {
+            "type": "string",
+            
+            "description": "Alias for the result"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/AggregationOperator"
+          }
+        }
+      },
+      "SecondAggregation": {
+        "type": "object",
+        "required": [
+          "operator",
+          "field"
+        ],
+        "properties": {
+          "operator": {
+            "$ref": "#/components/schemas/AggregationOperator"
+          },
+          "field": {
+            "type": "string"
+          }
+        }
+      },
+      "AggregationOperator": {
+        "type": "string",
+        "enum": [
+          "DISTINCT",
+          "COUNT",
+          "SUM",
+          "MIN",
+          "MAX",
+          "AVG",
+          "RATE_TRUE",
+          "COUNT_DISTINCT"
+        ]
+      },
+      "Filter": {
+        "type": "object",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "=",
+              "!=",
+              ">",
+              ">=",
+              "<",
+              "<=",
+              "in"
+            ]
+          },
+          "value": {
+            "description": "Filter value (can be string, number, boolean, or array for 'in' operator)"
+          }
+        }
+      },
+      "KpiObjectsAggregateResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Objects containing groupBy fields and aggregation results"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether more records match the criteria"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,100 @@
+---
+title: "Fleet Management Overview"
+description: "Organize and manage your robot fleet effectively"
+---
+
+Fleet management in InOrbit helps you organize robots, track their operations, and manage them at scale. Whether you have 5 robots or 500, these tools keep your fleet organized and efficient.
+
+## Core Concepts
+
+### Collections
+
+**Collections** are groups of robots that you define for easier management. Use collections to:
+- Filter dashboards to specific robot groups
+- Apply configurations to multiple robots
+- Generate reports for robot subsets
+- Assign permissions by robot group
+
+Examples:
+- "Delivery Bots" - All delivery robots
+- "Building A" - Robots in a specific location
+- "Night Shift" - Robots operating at night
+
+### Tags
+
+**Tags** are labels you can apply to robots for flexible categorization:
+- Robots can have multiple tags
+- Tags can be applied/removed dynamically
+- Filter and search by tags
+- Use in incident rules and automation
+
+Examples:
+- `high-priority`, `maintenance-due`, `testing`
+
+### Locations
+
+**Locations** represent physical sites where robots operate:
+- Warehouses, hospitals, retail stores
+- Each location can have multiple areas (floors, sections)
+- Robots are assigned to locations
+- Dashboards can filter by location
+
+## How They Work Together
+
+```
+Fleet (all robots)
+├── Collection: "East Coast"
+│   ├── Location: NYC Warehouse
+│   │   └── Robots: bot-1, bot-2 (tags: delivery)
+│   └── Location: Boston Store
+│       └── Robots: bot-3 (tags: cleaning)
+└── Collection: "West Coast"
+    └── Location: LA Distribution
+        └── Robots: bot-4, bot-5 (tags: delivery, high-priority)
+```
+
+## Benefits
+
+<CardGroup cols={2}>
+  <Card title="Simplified Monitoring" icon="eye">
+    Filter dashboards to focus on specific robot groups.
+  </Card>
+  <Card title="Bulk Operations" icon="list-check">
+    Apply changes to multiple robots at once.
+  </Card>
+  <Card title="Organized Reporting" icon="chart-bar">
+    Generate reports by collection, location, or tag.
+  </Card>
+  <Card title="Flexible Permissions" icon="lock">
+    Control access by location or collection.
+  </Card>
+</CardGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Define Your Locations">
+    Set up your physical sites in the Locations dashboard.
+  </Step>
+  <Step title="Create Collections">
+    Group robots by function, customer, or any meaningful criteria.
+  </Step>
+  <Step title="Apply Tags">
+    Add tags for dynamic categorization.
+  </Step>
+  <Step title="Use Filters">
+    Filter dashboards and reports by your organization scheme.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Collections & Tags" icon="tags" href="/space-intelligence/fleet-management/collections-tags">
+    Learn to organize robots with collections and tags.
+  </Card>
+  <Card title="Locations & Areas" icon="building" href="/space-intelligence/fleet-management/locations-areas">
+    Set up your physical sites.
+  </Card>
+</CardGroup>
+

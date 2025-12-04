@@ -1,83 +1,154 @@
 ---
 title: "Status Definitions"
-description: "Configuration reference for Status Definitions"
+description: "Define rules to flag robot health issues based on data source values"
 ---
 
-> Status Definition Configuration Object Schema
+Status definitions create rules that evaluate data source values and flag problems with robots. Statuses are visualized in Fleet dashboards with color-coded indicators and serve as the foundation for [incident definitions](/ground-control/configuration/kinds/incident-definitions).
 
-```json
-{
-  "metadata": {
-    "scope": "account",
-    "id": "<statusId>"
-  },
-  "apiVersion": "v0.1",
-  "kind": "StatusDefinition",
-  "spec": {
-     "calculated": {
-       "label": "<label>",
-       "expression": "<expression>",
-       "filter": "<expression>"
-     },
-     "rules": [
-       {
-         "function": "ABOVE/BELOW/EQUALS/NOT_EQUALS/CONTAINS",
-         "params": [],
-         "sustainedForSeconds": 120,
-         "status": "OK/WARNING/ERROR"
-       }
-     ]
-  }
-}
+## When to Use
+
+- **Threshold monitoring**: Flag when battery drops below 20%, temperature exceeds 70°C, etc.
+- **String matching**: Detect error states from status strings
+- **Complex conditions**: Combine multiple data sources with expressions for advanced logic
+- **Sustained conditions**: Only alert when a condition persists for a minimum duration
+
+## Status Values
+
+Each status can have three values, displayed in different colors:
+
+| Value | Color | Description |
+|-------|-------|-------------|
+| `OK` | Green | Normal operation |
+| `WARNING` | Yellow | Attention needed |
+| `ERROR` | Red | Critical issue |
+
+## Basic vs. Calculated Status
+
+**Basic status**: The `id` must match an existing data source ID. Rules evaluate against that data source's value directly.
+
+**Calculated status**: Uses the `calculated` field to define a custom expression combining multiple data sources.
+
+## Rules
+
+Rules are evaluated in order—the first matching rule determines the status value.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `function` | string | Yes | Comparison function (see below). |
+| `params` | array | Yes | Arguments for the function. |
+| `sustainedForSeconds` | number | No | Only trigger after condition persists for this duration. |
+| `status` | string | Yes | Status value: `"OK"`, `"WARNING"`, or `"ERROR"`. |
+
+### Functions
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `ABOVE` | Value > param | `params: [85]` — triggers when value > 85 |
+| `BELOW` | Value < param | `params: [20]` — triggers when value < 20 |
+| `EQUALS` | Value == param | `params: ["error"]` — triggers when value equals "error" |
+| `NOT_EQUALS` | Value != param | `params: ["ok"]` — triggers when value is not "ok" |
+| `CONTAINS` | Value contains param | `params: ["error"]` — triggers when value contains "error" |
+
+## Examples
+
+### Basic: Battery Level
+
+```yaml
+kind: StatusDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "batteryLevel"  # Must match DataSourceDefinition id
+spec:
+  rules:
+    - function: "BELOW"
+      params: [0.2]
+      status: "ERROR"
+    - function: "BELOW"
+      params: [0.4]
+      status: "WARNING"
 ```
 
-> Example status definition monitoring a motor temperature sensor
+### Basic: Motor Temperature
 
-```json
-{
-  "metadata": {
-    "scope": "account",
-    "id": "motorTemperatureId"
-  },
-  "apiVersion": "v0.1",
-  "kind": "StatusDefinition",
-  "spec": {
-     "rules": [
-       {
-         "function": "ABOVE",
-         "params": [70],
-         "status": "WARNING"
-       },
-       {
-         "function": "BELOW",
-         "params": [85],
-         "sustainedForSeconds": 60,
-         "status": "ERROR"
-       }
-     ]
-  }
-}
+```yaml
+kind: StatusDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "motorTemperature"
+spec:
+  rules:
+    - function: "ABOVE"
+      params: [70]
+      status: "WARNING"
+    - function: "ABOVE"
+      params: [85]
+      sustainedForSeconds: 60
+      status: "ERROR"
 ```
 
-*Status definitions* allows setting up rules to flag different problems in robots.
-For example, a battery level dropping below a threshold, a sustained low motor speed, or a specific data source receiving an unexpected value.
-Statuses are [visualized in Fleet dashboards](https://www.inorbit.ai/docs?hsLang=en#look-at-inorbit).
-and also serve as the source for defining Incidents -- see next section.
+### Calculated: Docked But Not Charging
 
-Each Status may take three values: OK, WARNING and ERROR. They are displayed in different colors in dashboards. To determine these values, a `StatusDefinition` is configured with a number of rules: the first one to match the current robot condition determines the status value.
+Combines multiple data sources to detect when a robot is docked but not charging:
 
-Each rule contains the `status` value to assign (`OK`, `WARNING` or `ERROR`). The rule is defined by a function, one of `EQUAL`, `NOT_EQUALS`, `BELOW`, `ABOVE` or `CONTAINS`, which can be combined with an optional `sustainedForSeconds`. The `sustainedForSeconds` value ensures the rule is only triggered after the conditions are met for the specified amount of time. The argument(s) for the function are set in `params`, as a list of values. For example, to indicate *if the temperature has been greater than 85 for over a minute*, one would define `{ "function": "ABOVE", "params": [85], "sustainedForSeconds": 60 }`.
+```yaml
+kind: StatusDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "dockedNotCharging"
+spec:
+  calculated:
+    label: "Charging issues"
+    expression: "getValue('dsDockedStatus') == 1 and not getValue('dsCharging')"
+    filter: "getValue('dsDockedStatus') != null"
+  rules:
+    - function: "EQUALS"
+      params: [true]
+      sustainedForSeconds: 30
+      status: "WARNING"
+    - function: "EQUALS"
+      params: [true]
+      sustainedForSeconds: 120
+      status: "ERROR"
+```
 
-A Status can be evaluated based on a data source value (see [Data Sources](#data-sources)). In this case, the `` must match an existing data source id (and does not have a `calculated` object in its `spec`.
-In the previous example, the `statusId` would be the ID of motor temperature's data source.
-Alternatively, an **advanced** `StatusDefinition` can be defined using an arbitrary expression, using multiple data sources or robot tags. In this case, the `calculated` field must contain:
+### Calculated: Navigation Stuck
 
-- A `expression` string in InOrbit's [expression language](/ground-control/concepts/expressions-language#expressions-language). This allows evaluating an arbitrary condition, such as _"If a robot with the 'prod' tag is not moving and its current program is 'delivery'"_.
-- Optionally a `filter` can determine *if* the status is to be computed. This allows skipping computation. For example, when using a rich JSON data source as an input, certain messages can be skipped and will not update the status.
+Detects when a navigating robot has moved less than 2 meters in 60 seconds:
 
-Expressions can use values from any robot data source, combine them with comparisons and logical operators, use aggregations on data sources, and even localization-related functions. See [expression language reference](/ground-control/concepts/expressions-language#expressions-language) below.
+```yaml
+kind: StatusDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "unableToNavigate"
+spec:
+  calculated:
+    label: "Navigation stuck"
+    expression: "(getValue('dsMission') in ['DELIVERY','RETURN-DOCK']) ? visitedAreaDiagonal(60) : null"
+  rules:
+    - function: "BELOW"
+      params: [2]
+      sustainedForSeconds: 600
+      status: "ERROR"
+```
 
-_Note: The number of **advanced** `StatusDefinitions` is limited in Free Edition. See [pricing page](https://www.inorbit.ai/pricing?hsLang=en)._
+## Calculated Fields
 
-Once a Status changes its value to Warning or Error, this can trigger an *incident*. Refer to `IncidentDefinition` config objects below.
+| Field | Type | Description |
+|-------|------|-------------|
+| `label` | string | Display label for this status. |
+| `expression` | string | [Expression](/ground-control/concepts/expressions-language) to compute the status input value. |
+| `filter` | string | Optional expression. If false, status is not updated. |
 
+<Note>
+The number of calculated (advanced) status definitions may be limited in some editions. See the [pricing page](https://www.inorbit.ai/pricing).
+</Note>
+
+## Related Documentation
+
+- [Data Sources](/ground-control/configuration/kinds/data-sources) — Define data sources to monitor
+- [Incident Definitions](/ground-control/configuration/kinds/incident-definitions) — Create incidents from statuses
+- [Expressions Language](/ground-control/concepts/expressions-language) — Syntax for calculated statuses

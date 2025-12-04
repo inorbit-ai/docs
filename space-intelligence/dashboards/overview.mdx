@@ -1,0 +1,145 @@
+---
+title: "Dashboards Overview"
+description: "Understanding and customizing InOrbit dashboards"
+---
+
+Dashboards are the primary interface for interacting with your robots in InOrbit Control. Each dashboard is a collection of widgets that display data and provide controls for your robot fleet.
+
+## Default Dashboards
+
+InOrbit comes with four pre-configured dashboards:
+
+<CardGroup cols={2}>
+  <Card title="Locations" icon="building" href="/space-intelligence/dashboards/locations">
+    Configure your physical sites, upload maps, and define zones and waypoints.
+  </Card>
+  <Card title="Fleet" icon="robot" href="/space-intelligence/dashboards/fleet">
+    Bird's-eye view of your entire fleet's health and status.
+  </Card>
+  <Card title="Robot" icon="microchip" href="/space-intelligence/dashboards/robot">
+    Deep dive into individual robot details, vitals, and actions.
+  </Card>
+  <Card title="Navigation" icon="route" href="/space-intelligence/dashboards/navigation">
+    Real-time robot navigation with map and camera views.
+  </Card>
+</CardGroup>
+
+## Dashboard Components
+
+Every dashboard consists of:
+
+### Widgets
+
+Individual components that display specific information or controls:
+- **Data widgets** - Show metrics, charts, timelines
+- **Map widgets** - Display robot positions and paths
+- **Action widgets** - Buttons to control robots
+- **Status widgets** - Health indicators and alerts
+
+### Layout
+
+Widgets can be arranged in a grid layout:
+- Drag to reorder
+- Resize to fit your needs
+- Add/remove as needed
+
+### Filters
+
+Many dashboards support filtering by:
+- Robot name or ID
+- Collection or tag
+- Location
+- Time range
+
+## Customizing Dashboards
+
+<Note>
+  Dashboard customization requires **Owner** or **Administrator** role.
+</Note>
+
+### Adding Widgets
+
+1. Enter edit mode (click the edit icon)
+2. Click **Add Widget**
+3. Select widget type from the catalog
+4. Configure widget settings
+5. Position and resize as needed
+6. Save changes
+
+### Available Widget Types
+
+| Widget | Description |
+|--------|-------------|
+| **Timeline** | Historical data over time |
+| **Map** | Robot position and navigation |
+| **Vitals** | Battery, CPU, memory, disk |
+| **Modes & Tags** | Current robot state |
+| **Actions** | Execute robot commands |
+| **Robot Log** | Recent log entries |
+| **Camera** | Live video feed |
+| **KPI** | Key performance indicators |
+| **Incidents** | Active alerts and issues |
+| **Fleet Status** | Fleet-wide overview |
+
+### Creating New Dashboards
+
+1. Go to **Settings** → **Dashboards**
+2. Click **Create Dashboard**
+3. Name your dashboard
+4. Add widgets and configure layout
+5. Set visibility (which roles can see it)
+6. Save and publish
+
+<Tip>
+  Start by duplicating an existing dashboard and modifying it rather than building from scratch.
+</Tip>
+
+## Dashboard Permissions
+
+Control who sees which dashboards:
+
+| Setting | Description |
+|---------|-------------|
+| **Visibility** | Which roles can access the dashboard |
+| **Default** | Show in navigation by default |
+| **Position** | Order in the dashboard list |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Design for your audience">
+    Operators need quick status views. Engineers need detailed diagnostics. Create role-specific dashboards.
+  </Accordion>
+  
+  <Accordion title="Keep it focused">
+    Don't overload dashboards with too many widgets. Group related information logically.
+  </Accordion>
+  
+  <Accordion title="Use collections">
+    Filter dashboards by robot collections to focus on specific groups.
+  </Accordion>
+  
+  <Accordion title="Set meaningful defaults">
+    Configure widgets to show the most relevant data by default.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Explore each default dashboard:
+
+<CardGroup cols={2}>
+  <Card title="Locations Dashboard" icon="building" href="/space-intelligence/dashboards/locations">
+    Set up your facilities and maps.
+  </Card>
+  <Card title="Fleet Dashboard" icon="robot" href="/space-intelligence/dashboards/fleet">
+    Monitor fleet health.
+  </Card>
+  <Card title="Robot Dashboard" icon="microchip" href="/space-intelligence/dashboards/robot">
+    Individual robot details.
+  </Card>
+  <Card title="Navigation Dashboard" icon="route" href="/space-intelligence/dashboards/navigation">
+    Real-time navigation monitoring.
+  </Card>
+</CardGroup>
+

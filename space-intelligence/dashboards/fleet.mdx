@@ -1,0 +1,154 @@
+---
+title: "Fleet Dashboard"
+description: "Monitor your entire robot fleet's real-time health and status"
+---
+
+The Fleet dashboard provides a bird's-eye view of your entire robot fleet. It shows an overview of real-time fleet health, making it easy to identify robots that need attention.
+
+## Robot Fleet View
+
+The main widget displays a table overview of all your robots based on key characteristics:
+
+### Status Indicators
+
+Robots are color-coded by status:
+- 🔴 **Red** - Error requiring immediate attention
+- 🟡 **Yellow** - Warning that should be investigated
+- 🔵 **Blue** - OK, operating normally
+
+<Note>
+  In the default sort (by status), robots with errors and warnings appear first for immediate visibility.
+</Note>
+
+### Default Characteristics
+
+| Characteristic | What It Shows |
+|----------------|---------------|
+| **Battery** | Current charge level |
+| **Disk Usage** | Storage capacity used |
+| **RAM Usage** | Memory utilization |
+| **Diagnostics** | ROS diagnostics status |
+| **Localization** | Position confidence |
+| **ROS Status** | ROS node health |
+| **Payload Weight** | Current load (if applicable) |
+
+## Filtering & Grouping
+
+### Filter by Collection
+
+If robot collections have been defined, use the collections dropdown to view specific groups:
+
+```
+Fleet > All Robots
+Fleet > Delivery Bots
+Fleet > Cleaning Bots
+Fleet > Building A
+```
+
+<Tip>
+  Collections help you organize robots by function, location, customer, or any criteria meaningful to your operations.
+</Tip>
+
+### Group By
+
+Organize the fleet view by selecting a grouping:
+
+| Group By | Description |
+|----------|-------------|
+| **Ungrouped** | All robots in a single list (default) |
+| **Location** | Group by physical location |
+| **Hardware** | Group by robot type/model |
+| **Customer** | Group by customer assignment |
+| **Mode** | Group by current operational mode |
+
+### Mode Groupings
+
+When grouped by mode, robots are organized by their current state:
+- **Idle** - Not currently tasked
+- **Charging** - At charging station
+- **On Mission** - Executing a task
+- **Manual** - Under manual control
+- **Error** - In error state
+
+## Reading the Fleet Table
+
+### Columns (Robots)
+
+Each column represents one robot:
+- Robot name at the bottom
+- Current mode displayed beneath the name
+- Scroll horizontally to see more robots
+
+### Rows (Characteristics)
+
+Each row shows a specific characteristic across all robots:
+- Color indicates status (red/yellow/blue)
+- Click a cell to see details
+
+## Quick Actions
+
+From the Fleet dashboard, you can:
+
+- **Click a robot** to open its Robot dashboard
+- **Hover for details** to see specific values
+- **Filter by status** to focus on problem robots
+- **Export data** for reporting
+
+## Customizing the Fleet View
+
+Administrators can customize which characteristics appear:
+
+1. Enter edit mode
+2. Open widget settings
+3. Select characteristics to display
+4. Reorder as needed
+5. Save changes
+
+### Adding Custom Characteristics
+
+If your robots report custom data, you can add it to the fleet view:
+- Custom key-value attributes
+- Integration-specific metrics
+- Computed values
+
+## Incidents Integration
+
+The Fleet dashboard can show incident indicators:
+- Robots with active incidents are highlighted
+- Click to see incident details
+- Resolve incidents directly from the dashboard
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start your day here">
+    Use the Fleet dashboard as your morning check to quickly identify any robots needing attention.
+  </Accordion>
+  
+  <Accordion title="Use collections strategically">
+    Create collections that match how you think about your fleet (by location, by function, by shift).
+  </Accordion>
+  
+  <Accordion title="Set up alerts">
+    Don't rely solely on visual monitoring—configure incident alerts for critical conditions.
+  </Accordion>
+  
+  <Accordion title="Check the scroll">
+    Remember to scroll horizontally if you have many robots to ensure you don't miss any.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Robot Dashboard" icon="microchip" href="/space-intelligence/dashboards/robot">
+    Dive into individual robot details.
+  </Card>
+  <Card title="Collections & Tags" icon="tags" href="/space-intelligence/fleet-management/collections-tags">
+    Learn how to organize your fleet.
+  </Card>
+  <Card title="Incident Management" icon="bell" href="/space-intelligence/operations/incident-management">
+    Set up alerts for fleet issues.
+  </Card>
+</CardGroup>
+

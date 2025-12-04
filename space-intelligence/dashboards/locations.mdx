@@ -1,0 +1,169 @@
+---
+title: "Locations Dashboard"
+description: "Configure and manage your physical sites, areas, and maps"
+---
+
+The Locations dashboard allows you to configure powerful operational rules for your sites. Each location represents a physical facility where your robots operate, and can contain multiple areas (like different floors or sections).
+
+## Understanding Locations Structure
+
+```
+Location (e.g., "Warehouse Alpha")
+├── Area 1 (e.g., "Floor 1")
+│   ├── Map (floor plan or robot-generated)
+│   ├── Zones (pickup, dropoff, restricted)
+│   └── Waypoints (navigation targets)
+├── Area 2 (e.g., "Floor 2")
+│   └── ...
+└── Area 3 (e.g., "Loading Dock")
+    └── ...
+```
+
+## Locations List View
+
+The main Locations dashboard shows all your configured locations:
+
+- **Location name** - Identifier for the site
+- **Area count** - Number of areas defined
+- **Robot count** - Robots assigned to this location
+- **Status** - Configuration completeness
+
+Click on any location to open the **Locations Editor**.
+
+## Locations Editor
+
+The editor lets you manage a location's configuration:
+
+### Adding Areas
+
+1. Click **Add Area**
+2. Name the area (e.g., "Floor 1", "East Wing")
+3. Set as default area if applicable
+4. Configure area-specific settings
+
+### Managing Maps
+
+Each area can have one or more maps:
+
+<Steps>
+  <Step title="Upload a Map">
+    Upload an image of your floor plan (PNG, JPG, or SVG).
+  </Step>
+  <Step title="Or Import from Robot">
+    Import a map directly from one of your robots that has mapping capability.
+  </Step>
+  <Step title="Set Scale">
+    Define the real-world dimensions to enable accurate positioning.
+  </Step>
+  <Step title="Set as Default">
+    Choose which map to display by default for this area.
+  </Step>
+</Steps>
+
+### Map Alignment
+
+When viewing multiple robots on a shared map, use the **Map Aligner** tool:
+
+1. Select the robot whose map you want to align
+2. The aligner shows both the robot's map and the default map
+3. Drag, rotate, and scale to visually align landmarks
+4. Save the alignment
+
+<Tip>
+  Align maps using clear landmarks like walls, doorways, or pillars that appear in both maps.
+</Tip>
+
+## Annotating Maps
+
+Once you have a default map, you can add annotations:
+
+### Waypoints
+
+Named positions that robots can navigate to:
+- **Pickup points** - Where robots collect items
+- **Dropoff points** - Where robots deliver items  
+- **Charging stations** - Where robots recharge
+- **Home positions** - Default robot positions
+
+To add a waypoint:
+1. Click **Add Waypoint**
+2. Click the position on the map
+3. Name the waypoint
+4. Set waypoint type and properties
+
+### Zones
+
+Areas with special meaning or rules:
+
+| Zone Type | Purpose |
+|-----------|---------|
+| **Restricted** | Robots should avoid this area |
+| **Speed limit** | Robots slow down here |
+| **Pickup** | Item collection area |
+| **Dropoff** | Item delivery area |
+| **Charging** | Charging station area |
+| **Custom** | User-defined zones |
+
+To add a zone:
+1. Click **Add Zone**
+2. Draw the zone boundary on the map
+3. Name the zone
+4. Select zone type and configure rules
+
+## Assigning Robots to Locations
+
+Robots can be assigned to locations for:
+- Filtering in Fleet dashboard
+- Location-specific configurations
+- Multi-site fleet management
+
+To assign robots:
+1. Go to location settings
+2. Click **Manage Robots**
+3. Select robots to assign
+4. Save changes
+
+## Multi-Site Management
+
+For organizations with multiple facilities:
+
+- Each location operates independently
+- Dashboards can filter by location
+- Reports can aggregate across locations
+- Users can be restricted to specific locations
+
+<Info>
+  Multi-site management with location-based access control is available in **Enterprise** edition.
+</Info>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use meaningful names">
+    Name locations and areas clearly (e.g., "Austin Warehouse - Floor 2" not "Location 1").
+  </Accordion>
+  
+  <Accordion title="Keep maps up to date">
+    Update maps when facility layouts change to ensure accurate robot positioning.
+  </Accordion>
+  
+  <Accordion title="Define zones early">
+    Set up restricted zones and speed limits before deploying robots in production.
+  </Accordion>
+  
+  <Accordion title="Use consistent waypoint naming">
+    Establish naming conventions for waypoints across locations.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Maps Concepts" icon="map" href="/ground-control/concepts/maps">
+    Deep dive into map configuration and alignment.
+  </Card>
+  <Card title="Traffic Management" icon="traffic-light" href="/ground-control/configuration/kinds/traffic-management">
+    Configure traffic zones and rules.
+  </Card>
+</CardGroup>
+

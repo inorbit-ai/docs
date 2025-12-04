@@ -1,0 +1,106 @@
+---
+title: "User Roles & Permissions"
+description: "Understanding user roles and access control in InOrbit"
+---
+
+InOrbit uses role-based access control to manage what users can see and do within the platform. Each user is assigned a role that determines their permissions.
+
+## Default Roles
+
+The following roles are pre-configured for your account:
+
+| Role | Description | Typical Use |
+|------|-------------|-------------|
+| **Owner** | Full access to all features and settings | Account administrators |
+| **Administrator** | Can manage users, dashboards, and configurations | IT/Operations managers |
+| **Manager** | Can view all data and perform management actions | Team leads |
+| **Engineer** | Technical access for troubleshooting and configuration | Robot engineers |
+| **Operator** | Day-to-day robot operation and monitoring | Floor operators |
+| **Viewer** | Read-only access to dashboards | Stakeholders, observers |
+
+<Note>
+  Administrator, Engineer, Operator, and Viewer roles are available in **Standard** and **Enterprise** editions.
+</Note>
+
+## Role Capabilities
+
+### Owner & Administrator
+
+<Check>Create and edit dashboards</Check>
+<Check>Manage user accounts and roles</Check>
+<Check>Configure integrations</Check>
+<Check>Define incidents and alerts</Check>
+<Check>Access all settings</Check>
+<Check>View audit logs</Check>
+
+### Manager
+
+<Check>View all dashboards</Check>
+<Check>Execute robot actions</Check>
+<Check>Manage incidents</Check>
+<Check>View reports and KPIs</Check>
+<Warning>Cannot modify system settings</Warning>
+
+### Engineer
+
+<Check>View technical dashboards</Check>
+<Check>Access robot logs and diagnostics</Check>
+<Check>Configure robot-level settings</Check>
+<Check>Execute technical actions</Check>
+<Warning>Cannot manage users</Warning>
+
+### Operator
+
+<Check>View operational dashboards</Check>
+<Check>Monitor robot status</Check>
+<Check>Execute approved actions</Check>
+<Check>Respond to incidents</Check>
+<Warning>Limited configuration access</Warning>
+
+### Viewer
+
+<Check>View assigned dashboards</Check>
+<Check>See robot status</Check>
+<Warning>Cannot execute actions</Warning>
+<Warning>Cannot modify any settings</Warning>
+
+## Dashboard Access by Role
+
+Different roles see different dashboards by default:
+
+| Dashboard | Owner | Admin | Manager | Engineer | Operator | Viewer |
+|-----------|:-----:|:-----:|:-------:|:--------:|:--------:|:------:|
+| Locations | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Fleet | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Robot | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Navigation | ✅ | ✅ | ✅ | ✅ | ✅ | ⚪ |
+| Settings | ✅ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ |
+| Admin | ✅ | ✅ | ⚪ | ⚪ | ⚪ | ⚪ |
+
+<Tip>
+  Administrators can customize dashboard access per role based on your organization's needs.
+</Tip>
+
+## Managing Users
+
+As an Owner or Administrator:
+
+1. Go to **Settings** (click the three vertical dots menu in the upper right)
+2. Select the **Admin** tab
+3. Click **Users** in the left menu
+4. Add, edit, or remove users and their roles
+
+## Custom Roles
+
+<Info>
+  Custom role creation is available in **Enterprise** edition. Contact support@inorbit.ai for more information.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Dashboards" icon="table-columns" href="/space-intelligence/dashboards/overview">
+    Learn about the default dashboards and how to use them.
+  </Card>
+</CardGroup>
+

@@ -1,0 +1,142 @@
+---
+title: "Connectors"
+description: "Pre-built integrations for popular robot platforms and fleet managers"
+---
+
+**Connectors** are lightweight applications that bridge robots or fleet managers to InOrbit. They use the [Edge SDK](/ground-control/robot-integration/edge-sdk) to send robot data to InOrbit and can handle bidirectional communication for actions and missions.
+
+Use a connector when:
+- Your robots use a proprietary fleet manager (MiR, OTTO, Gausium, etc.)
+- You want to integrate robots that expose an API
+- You can't or don't want to install software directly on robots
+
+## Available Connectors
+
+<CardGroup cols={2}>
+  <Card title="MiR Connector" icon="robot" href="https://github.com/inorbit-ai/inorbit-robot-connectors/tree/main/mir_connector">
+    Connect MiR AMRs via MiR Fleet
+  </Card>
+  <Card title="OTTO Connector" icon="robot" href="https://github.com/inorbit-ai/inorbit-robot-connectors/tree/main/otto_connector">
+    Connect OTTO Motors robots
+  </Card>
+  <Card title="Gausium Connector" icon="robot" href="https://github.com/inorbit-ai/inorbit-robot-connectors/tree/main/gausium_connector">
+    Connect Gausium cleaning robots
+  </Card>
+  <Card title="InStock Connector" icon="warehouse" href="https://github.com/inorbit-ai/inorbit-robot-connectors/tree/main/instock_connector">
+    Connect InStock inventory robots
+  </Card>
+</CardGroup>
+
+All connectors are open source and available on [GitHub](https://github.com/inorbit-ai/inorbit-robot-connectors).
+
+## Deployment Options
+
+Connectors can be deployed in two ways:
+
+<Tabs>
+  <Tab title="Edge Deployment">
+    Deploy the connector on your own infrastructure within your network.
+    
+    **Best for:**
+    - Full control over infrastructure
+    - Existing edge compute resources
+    - Air-gapped or restricted networks
+    
+    **Requirements:**
+    - Linux server (Ubuntu 20.04+ recommended) or Docker
+    - Network access to robot/fleet manager API
+    - Outbound internet access to InOrbit cloud
+    
+    **You manage:** Infrastructure, updates, monitoring
+  </Tab>
+  <Tab title="Managed Cloud (Recommended)">
+    InOrbit hosts and manages the connector in our cloud infrastructure.
+    
+    **Best for:**
+    - Minimal operational overhead
+    - No dedicated edge infrastructure
+    - Simplified network configuration
+    
+    **How it works:**
+    - Secure tunnel (frpc) runs on a lightweight machine in your network
+    - Connector runs in InOrbit cloud, communicates through the tunnel
+    - No inbound firewall rules needed — connection is outbound only
+    - All traffic is encrypted with secret key authentication
+    
+    **You manage:** Only the lightweight tunnel client
+    
+    <Info>
+    Contact [sales@inorbit.ai](mailto:sales@inorbit.ai) to set up managed cloud deployment.
+    </Info>
+  </Tab>
+</Tabs>
+
+## How Connectors Work
+
+```
+┌─────────────────┐     ┌─────────────┐     ┌─────────────┐
+│ Robot or        │ ←── │ Connector   │ ──→ │ InOrbit     │
+│ Fleet Manager   │     │ (Edge SDK)  │     │ Cloud       │
+└─────────────────┘     └─────────────┘     └─────────────┘
+```
+
+The connector:
+1. Polls your robot or fleet manager API for status
+2. Transforms data into InOrbit format
+3. Publishes to InOrbit via Edge SDK
+4. Handles bidirectional actions (missions, commands)
+
+## Building Your Own Connector
+
+If there's no pre-built connector for your platform, you can create one using our Python framework:
+
+### inorbit-connector Package
+
+The [`inorbit-connector`](https://pypi.org/project/inorbit-connector/) Python package provides a base structure for building connectors:
+
+```bash
+pip install inorbit-connector
+```
+
+```python
+from inorbit_connector import InOrbitConnector
+
+class MyConnector(InOrbitConnector):
+    def fetch_robot_data(self):
+        # Poll your robot or fleet manager API
+        # Return robot positions, status, etc.
+        pass
+```
+
+<Card title="Connector Framework" icon="github" href="https://github.com/inorbit-ai/inorbit-connector-python">
+  View documentation and examples on GitHub
+</Card>
+
+## Connector Configuration
+
+Most connectors use YAML configuration files. Example for MiR:
+
+```yaml
+# fleet.yaml
+fleet_manager:
+  host: "mir-fleet.example.com"
+  username: "admin"
+  password: "secret"
+
+robots:
+  - mir_id: "MiR_123"
+    inorbit_id: "robot-001"
+```
+
+Each connector has specific configuration options documented in its README.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Edge SDK" icon="code" href="/ground-control/robot-integration/edge-sdk">
+    Learn the SDK that powers connectors
+  </Card>
+  <Card title="GitHub Repo" icon="github" href="https://github.com/inorbit-ai/inorbit-robot-connectors">
+    View all connector source code
+  </Card>
+</CardGroup>

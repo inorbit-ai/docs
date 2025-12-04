@@ -1,11 +1,25 @@
 ---
-title: "Overview"
-description: "Complete reference for all configuration object kinds"
+title: "Configuration Kinds"
+description: "Reference documentation for all configuration object types in InOrbit"
 ---
 
-This section provides detailed reference documentation for all configuration object kinds available in InOrbit's Configuration API.
+InOrbit uses a declarative configuration model where you define **what** your robots should do, not how. Each configuration kind represents a specific aspect of your fleet setup—from data ingestion to incident alerts to custom dashboards.
 
-## Available Configuration Kinds
+Configuration objects follow a consistent structure:
+
+```yaml
+apiVersion: v0.1
+kind: <KindName>
+metadata:
+  scope: account/<accountId>  # or robot/<accountId>/<robotId>
+  id: my-config-id
+spec:
+  # Kind-specific fields
+```
+
+Use the [InOrbit CLI](/ground-control/configuration/cli) to apply, list, and manage configurations.
+
+## Data & Monitoring
 
 <CardGroup cols={2}>
   <Card
@@ -13,97 +27,111 @@ This section provides detailed reference documentation for all configuration obj
     icon="database"
     href="/ground-control/configuration/kinds/data-sources"
   >
-    Define which data from a robot is retrieved and turned into robot attributes
+    Extract robot data from ROS topics, key-value stores, or computed expressions into queryable attributes
   </Card>
   <Card
     title="Status Definitions"
     icon="signal"
     href="/ground-control/configuration/kinds/status-definitions"
   >
-    Set up rules to flag different problems in robots
+    Define robot health status rules that flag problems based on data source values
   </Card>
   <Card
     title="Incident Definitions"
     icon="triangle-exclamation"
     href="/ground-control/configuration/kinds/incident-definitions"
   >
-    Configure how and when incidents are triggered and notified
-  </Card>
-  <Card
-    title="Action Definitions"
-    icon="bolt"
-    href="/ground-control/configuration/kinds/action-definitions"
-  >
-    Configure robot actions and commands
-  </Card>
-  <Card
-    title="Dashboards"
-    icon="table-columns"
-    href="/ground-control/configuration/kinds/dashboards"
-  >
-    Define the user experience for monitoring and operating robot fleets
-  </Card>
-  <Card
-    title="Preferences"
-    icon="sliders"
-    href="/ground-control/configuration/kinds/preferences"
-  >
-    Adjust user interface elements and global widget properties
-  </Card>
-  <Card
-    title="Robot Camera"
-    icon="camera"
-    href="/ground-control/configuration/kinds/robot-camera"
-  >
-    Configure cameras with still images transmitted from robots
-  </Card>
-  <Card
-    title="Robot Footprint"
-    icon="vector-square"
-    href="/ground-control/configuration/kinds/robot-footprint"
-  >
-    Configure the footprint area that a robot occupies in a map
-  </Card>
-  <Card
-    title="Mission Tracking"
-    icon="route"
-    href="/ground-control/configuration/kinds/mission-tracking"
-  >
-    Observe and measure robots' performance while executing tasks
-  </Card>
-  <Card
-    title="Mission Definitions"
-    icon="bullseye"
-    href="/ground-control/configuration/kinds/mission-definitions"
-  >
-    Define missions for your robot fleet and configure their execution
+    Configure when to create incidents and how to notify operators
   </Card>
   <Card
     title="KPI Definitions"
     icon="chart-line"
     href="/ground-control/configuration/kinds/kpi-definitions"
   >
-    Define and configure Key Performance Indicators for your fleet
+    Aggregate fleet metrics for performance analysis and reporting
+  </Card>
+</CardGroup>
+
+## Robot Control
+
+<CardGroup cols={2}>
+  <Card
+    title="Action Definitions"
+    icon="bolt"
+    href="/ground-control/configuration/kinds/action-definitions"
+  >
+    Define commands that operators can trigger on robots
   </Card>
   <Card
-    title="Spatial Annotations"
-    icon="map-pin"
-    href="/ground-control/configuration/kinds/spatial-annotations"
+    title="Mission Definitions"
+    icon="bullseye"
+    href="/ground-control/configuration/kinds/mission-definitions"
   >
-    Define map elements such as waypoints that can be referenced by missions
+    Create reusable mission sequences with waypoints, actions, and conditions
+  </Card>
+  <Card
+    title="Mission Tracking"
+    icon="route"
+    href="/ground-control/configuration/kinds/mission-tracking"
+  >
+    Configure how mission progress and performance are monitored
   </Card>
   <Card
     title="Traffic Management"
     icon="traffic-light"
     href="/ground-control/configuration/kinds/traffic-management"
   >
-    Control where and how robots can navigate with traffic zones and rules
+    Define traffic zones and rules for safe multi-robot navigation
+  </Card>
+</CardGroup>
+
+## User Interface
+
+<CardGroup cols={2}>
+  <Card
+    title="Dashboards"
+    icon="table-columns"
+    href="/ground-control/configuration/kinds/dashboards"
+  >
+    Build custom monitoring interfaces with widgets and layouts
+  </Card>
+  <Card
+    title="Preferences"
+    icon="sliders"
+    href="/ground-control/configuration/kinds/preferences"
+  >
+    Configure UI defaults and widget behavior settings
+  </Card>
+</CardGroup>
+
+## Robot Configuration
+
+<CardGroup cols={2}>
+  <Card
+    title="Robot Footprint"
+    icon="vector-square"
+    href="/ground-control/configuration/kinds/robot-footprint"
+  >
+    Define the physical footprint shown on maps for collision visualization
+  </Card>
+  <Card
+    title="Robot Camera"
+    icon="camera"
+    href="/ground-control/configuration/kinds/robot-camera"
+  >
+    Configure camera feeds displayed in the UI
+  </Card>
+  <Card
+    title="Spatial Annotations"
+    icon="map-pin"
+    href="/ground-control/configuration/kinds/spatial-annotations"
+  >
+    Define named waypoints and map markers that missions can reference
   </Card>
 </CardGroup>
 
 ## Related Documentation
 
-- [Configuration Overview](/ground-control/configuration/overview) - Introduction to configuration management
-- [InOrbit CLI](/ground-control/configuration/cli) - Command-line interface for managing configurations
-- [Expressions Language](/ground-control/concepts/expressions-language) - JavaScript-like language for conditions and calculations
-
+- [Configuration Overview](/ground-control/configuration/overview) — Introduction to configuration management
+- [InOrbit CLI](/ground-control/configuration/cli) — Apply, list, and manage configurations
+- [Expressions Language](/ground-control/concepts/expressions-language) — Syntax for conditions and calculations

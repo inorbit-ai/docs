@@ -1,0 +1,222 @@
+---
+title: "Mission Tracking"
+description: "Track and manage robot missions from start to completion"
+---
+
+Mission tracking gives you visibility into what your robots are doing, from task assignment through completion. Track deliveries, cleaning routes, patrols, and any other robot tasks.
+
+## What Is a Mission?
+
+A **mission** is a task assigned to a robot with:
+- **Start time** - When the mission began
+- **Status** - Scheduled, In Progress, Completed, Failed
+- **Progress** - Percentage complete
+- **Metadata** - Custom fields like destination, payload, priority
+
+## Mission Lifecycle
+
+```
+Scheduled → In Progress → Completed
+                ↓
+              Failed
+```
+
+| State | Description |
+|-------|-------------|
+| **Scheduled** | Mission created, not yet started |
+| **In Progress** | Robot is executing the mission |
+| **Completed** | Mission finished successfully |
+| **Failed** | Mission could not be completed |
+
+## Viewing Missions
+
+### Mission Widget
+
+The Mission widget shows:
+- Current mission (if any)
+- Mission name/label
+- Progress percentage
+- Time elapsed
+- Mission metadata
+
+### Mission Timeline
+
+View historical missions:
+- Filter by robot, time range, or status
+- See mission duration and outcomes
+- Identify patterns and issues
+
+### Mission Dashboard
+
+A dedicated view for mission operations:
+- Active missions across fleet
+- Mission queue
+- Completion statistics
+
+## Creating Missions
+
+Missions can be created through:
+
+### REST API
+
+```bash
+curl -X POST https://api.inorbit.ai/missions \
+  -H "Content-Type: application/json" \
+  -H "x-auth-inorbit-app-key: YOUR_KEY" \
+  -d '{
+    "robotId": "robot-123",
+    "label": "Delivery to Dock 5",
+    "arguments": {
+      "destination": "Dock-5",
+      "priority": "high"
+    }
+  }'
+```
+
+Response includes the `missionId` for tracking.
+
+### Data Sources
+
+Configure automatic mission creation from robot data:
+- When robot enters "delivery" mode → create mission
+- When specific topic is published → start mission
+- Mission data flows from robot to InOrbit
+
+<Tip>
+  Data source integration is ideal when robots already track their own tasks.
+</Tip>
+
+## Updating Missions
+
+### Via API
+
+Update mission progress:
+
+```bash
+curl -X PUT https://api.inorbit.ai/missions/{missionId} \
+  -H "Content-Type: application/json" \
+  -H "x-auth-inorbit-app-key: YOUR_KEY" \
+  -d '{
+    "inProgress": true,
+    "completedPercent": 0.66
+  }'
+```
+
+### Complete a Mission
+
+```bash
+curl -X PUT https://api.inorbit.ai/missions/{missionId} \
+  -H "Content-Type: application/json" \
+  -H "x-auth-inorbit-app-key: YOUR_KEY" \
+  -d '{
+    "inProgress": false,
+    "state": "completed",
+    "completedPercent": 1.0
+  }'
+```
+
+### Via Data Sources
+
+Configure data sources to update missions:
+- Progress from robot sensors
+- Status from robot state machine
+- Completion from mode changes
+
+## Mission Metadata
+
+Missions can include custom data:
+
+| Field | Purpose |
+|-------|---------|
+| **label** | Human-readable mission name |
+| **arguments** | Custom key-value data |
+| **state** | Mission state |
+| **status** | OK, Warning, Error |
+| **completedPercent** | Progress 0.0 to 1.0 |
+
+### Example with Metadata
+
+```json
+{
+  "robotId": "robot-123",
+  "label": "Aisle 5-10 Cleaning",
+  "arguments": {
+    "area": "Zone A",
+    "priority": "normal",
+    "estimated_duration": 1800,
+    "assigned_by": "scheduler"
+  }
+}
+```
+
+## Mission Analytics
+
+Track mission performance:
+
+### KPIs
+- Missions completed per hour/day
+- Average mission duration
+- Success rate
+- Missions per robot
+
+### Reports
+- Mission history export
+- Performance trends
+- Failure analysis
+
+<Info>
+  Advanced mission analytics and custom KPIs are available in **Standard** and **Enterprise** editions.
+</Info>
+
+## Integration Patterns
+
+### External Scheduler
+
+```
+Your Scheduler → API: Create Mission → InOrbit
+                                          ↓
+Your Scheduler ← Webhook: Mission Complete
+```
+
+### Robot-Driven
+
+```
+Robot publishes mode → InOrbit detects → Mission created
+Robot updates status → InOrbit updates → Mission progress
+Robot changes mode   → InOrbit detects → Mission completed
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use meaningful labels">
+    "Delivery to Room 302" is better than "Mission-12345".
+  </Accordion>
+  
+  <Accordion title="Track progress">
+    Update `completedPercent` for long missions so operators see progress.
+  </Accordion>
+  
+  <Accordion title="Include context">
+    Add relevant metadata (destination, priority, requester) for better reporting.
+  </Accordion>
+  
+  <Accordion title="Handle failures">
+    Always set appropriate state when missions fail for accurate analytics.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Mission Tracking Config" icon="gear" href="/ground-control/configuration/kinds/mission-tracking">
+    Configure mission tracking settings.
+  </Card>
+  <Card title="Mission Definitions" icon="book" href="/ground-control/configuration/kinds/mission-definitions">
+    Define mission types and templates.
+  </Card>
+  <Card title="REST APIs" icon="code" href="/ground-control/application-integration/rest-apis">
+    Full API reference for missions.
+  </Card>
+</CardGroup>
+

@@ -1,129 +1,201 @@
 ---
 title: "Data Sources"
-description: "Configuration reference for Data Sources"
+description: "Define how robot data is captured and transformed into queryable attributes"
 ---
 
-> DataSourceDefinition configuration full schema
+Data source definitions specify how data from robots is captured, processed, and stored as attributes. These attributes power status monitoring, incident detection, dashboard visualizations, and KPI calculations throughout InOrbit.
 
-```json
-{
-  "metadata": {
-    "scope": "account",
-    "id": "<dataSourceId>"
-  },
-  "apiVersion": "v0.1",
-  "kind": "DataSourceDefinition",
-  "spec": {
-     "label": "",
-     "unit": "",
-     "scale": 1,
-     "type": "",
-     "timeline": {},
-     "source": {
-        "keyValue": {
-          "key": ""
-        },
-        "rosDiagnostics": {
-          "namespace": "",
-          "key": ""
-        },
-        "networkUsage": {
-          "interface": ""
-        },
-        "diskUsage": {
-          "partition": ""
-        },
-        "textFile": {
-          "path": ""
-        },
-        "imageFile": {
-          "path": ""
-        },
-        "derived": {
-          "transform": "",
-          "filter": ""
-        }
-      }
-  }
-}
+## When to Use
+
+- **Custom telemetry**: Capture application-specific data beyond standard ROS topics
+- **Computed values**: Derive new metrics from existing data using expressions
+- **System monitoring**: Track CPU, memory, disk, and network usage
+- **External data**: Ingest data from files or custom key-value messages
+
+## Spec Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | string | No | Display label for the data source. |
+| `unit` | string | No | Unit of measurement (e.g., `"m/s"`, `"%"`). |
+| `scale` | number | No | Multiplier applied before storing. Useful for normalizing percentages (0-100 → 0-1). |
+| `precision` | number | No | Decimal places for numeric values. |
+| `type` | string | No | Force interpretation as `"array"` or `"json"`. Auto-detected if not set. |
+| `timeline` | object | No | Time-series storage configuration. |
+| `source` | object | Yes | Data capture method. Only one source type per definition. |
+
+### Timeline Configuration
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `disabled` | boolean | If `true`, data is not stored in time-series database. |
+| `fieldType` | string | Data type: `"number"`, `"string"`, etc. Required for non-numeric data. |
+
+## Source Types
+
+### keyValue
+
+Receives data from key-value pair messages. The most common method uses ROS messages on `/inorbit/custom_data/0` in the format `"key=value"`.
+
+```yaml
+source:
+  keyValue:
+    key: "battery_level"
+    topic: "/inorbit/custom_data/0"  # optional, this is the default
 ```
 
-> DataSourceDefinition example
+### derived
 
-```json
-{
-  "metadata": {
-    "scope": "account",
-    "id": "<dataSourceId>"
-  },
-  "apiVersion": "v0.1",
-  "kind": "DataSourceDefinition",
-  "spec": {
-    "label": "",
-    "unit": "",
-    "type": "",
-    "timeline": {},
-    "source": {
-      "rosDiagnostics": {
-        "namespace": "/Navigation/Docking",
-        "key": "Docking Status"
-      }
-    }
-  }
-}
+Computes values from other data sources using [expressions](/ground-control/concepts/expressions-language).
+
+```yaml
+source:
+  derived:
+    transform: "getValue('temperature') * 1.8 + 32"
+    filter: "getValue('temperature') != null"
+    language: "safe"  # "safe" (default) or "full"
 ```
 
+| Field | Description |
+|-------|-------------|
+| `transform` | Expression that computes the value. |
+| `filter` | Expression that must be true for the value to update. |
+| `language` | `"safe"` limits to safe operations; `"full"` allows all JavaScript. |
 
-Configuring `DataSourcesDefinition` objects define which data from a robot is retrieved and
-turned into robot attributes for visualization, defining
-[statuses](#status-definitions) and [incidents](#incident-definitions) for
-monitoring and alerting, etc. Refer to the documentation for the basics on
-[Data Sources](https://www.inorbit.ai/docs#customize-robot).
+### rosDiagnostics
 
-All Data Sources have a `label`, and optionally a `unit` (for example "m/s" for a data source
-representing a velocity), which are used when displaying data in the app and alerts.
-Optionally, one can define a `type` to force interpreting the value as an `"array"` or a
-`"json"`-encoded object. When not defined, the type is "guessed" from the value received from the
-robot (usually a string, depending on the source): a number if there are digits, a boolean for
-the strings "true" and "false", or left unparsed as a string otherwise.
+Captures data from ROS `/diagnostics` messages.
 
-Values can be scaled using `scale` field, which multiplies the value reported by the robot before
-storing it. This is specially useful for percentage data sources (with `unit: "%"`) which need to
-be in the range [0..1] to be interpreted and displayed properly. If the robot sends these values
-in the range [0..100], then using `scale: 0.01` will scale them so they get displayed as
-percentages.
+```yaml
+source:
+  rosDiagnostics:
+    namespace: "/motors/left_wheel"
+    key: "Temperature"
+```
 
-What defines how the data is captured is the `source` field.
-It can contain only one of several possible keys, for each of the accepted sources:
+### networkUsage
 
-- `keyValue: { key: "a key" }`: Receives data published in the agent as a
-  key-value pair in the form `"a key=some value"`.
-  The most common mechanism is through a ROS message in topic `/inorbit/custom_data/0`;
-  in this way, multiple data sources can be transmitted through the same topic.
-  Alternatively, key-value pairs can also be received through SDK in non-ROS environments.
-- `rosDiagnostics: { namespace: "a diagnostics path", key: "a key" }`: Captures data published
-  in ROS diagnostics messages, for one specific `namespace` or path, and one `key`.
-- `networkUsage: { interface: "a network interface" }`: Captures the network bandwidth usage
-  of a specific network interface in the computer the agent is running on. Note that by default
-  InOrbit agents already capture an overall network usage and the specific bandwidth used by
-  InOrbit, but in some cases (for example if the overall usage includes intra-cpu traffic such
-  as containers) the usage through a specific network card (wifi, 4G) may be of interest.
-- `diskUsage: { partition: "device path" }`: Represents the total usage (as a fraction: from 0
-  to 1) of a specific volume in the computer the agent is running on. The path corresponds to the
-  device, e.g. `"/dev/hda1"`.
-- `textFile: { path: "file path" }`: Captures the contents of a text file; e.g. a log file, and
-  transmits it as a data source; which can be used as any other robot attribute or visualized
-  in a _Custom Text File_ widget. The file is monitored for changes.
-- `imageFile: { path: "file path" }`: Captures the contents of an image file;
-  transmits it as a data source. The image can later be visualized in a _Custom Image_ widget.
-  The file is monitored for changes.
-- `derived: { transform: "an expression", filter: "an expression" }`. Defines a data source
-  as "derived" from others, by means of the expression `transform` which can use other data
-  source values; for example to select one specific sub-field of a complex JSON object, or to
-  combine multiple data sources into one. An optional `filter` (another expression) can also be
-  given to skip updating the data source when the filter evaluates to `false` (or 0).
-  See the [expression language](/ground-control/concepts/expressions-language#expressions-language) reference.
+Monitors network interface bandwidth.
 
-A `DataSourceDefinition` may also contain a `timeline` field to specify if the data should be stored in a
-time-series database for visualization in different widgets (e.g. Timelines, Event Logs or History).
-If the data is not numeric, `timeline` must contain `fieldType` specifying the type of data to store.
+```yaml
+source:
+  networkUsage:
+    interface: "eth0"
+```
+
+### diskUsage
+
+Monitors disk partition usage (returns 0-1 fraction).
+
+```yaml
+source:
+  diskUsage:
+    partition: "/dev/sda1"
+```
+
+### textFile
+
+Reads and monitors a text file for changes.
+
+```yaml
+source:
+  textFile:
+    path: "/var/log/robot.log"
+```
+
+### imageFile
+
+Reads and monitors an image file for changes.
+
+```yaml
+source:
+  imageFile:
+    path: "/tmp/snapshot.jpg"
+```
+
+### network
+
+Advanced network interface metrics.
+
+```yaml
+source:
+  network:
+    interface: "wlan0"
+    mappingKey: "rx_bytes"
+    optionKey: "rate"
+```
+
+## Examples
+
+### ROS Diagnostics Data Source
+
+```yaml
+kind: DataSourceDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "dockingStatus"
+spec:
+  label: "Docking Status"
+  source:
+    rosDiagnostics:
+      namespace: "/Navigation/Docking"
+      key: "Docking Status"
+```
+
+### Key-Value with Custom Topic
+
+```yaml
+kind: DataSourceDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "missionProgress"
+spec:
+  label: "Mission Progress"
+  unit: "%"
+  scale: 0.01  # Convert 0-100 to 0-1
+  source:
+    keyValue:
+      key: "mission_progress"
+```
+
+### Derived Temperature Conversion
+
+```yaml
+kind: DataSourceDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "temperatureFahrenheit"
+spec:
+  label: "Temperature"
+  unit: "°F"
+  precision: 1
+  source:
+    derived:
+      transform: "getValue('temperatureCelsius') * 1.8 + 32"
+      filter: "getValue('temperatureCelsius') != null"
+```
+
+### System Monitoring
+
+```yaml
+kind: DataSourceDefinition
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "diskUsageRoot"
+spec:
+  label: "Disk Usage"
+  unit: "%"
+  scale: 100  # Convert 0-1 to 0-100
+  source:
+    diskUsage:
+      partition: "/"
+```
+
+## Related Documentation
+
+- [Status Definitions](/ground-control/configuration/kinds/status-definitions) — Use data sources to define robot health
+- [Expressions Language](/ground-control/concepts/expressions-language) — Syntax for derived data sources

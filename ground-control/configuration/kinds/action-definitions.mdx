@@ -1,173 +1,178 @@
 ---
 title: "Action Definitions"
-description: "Configuration reference for Action Definitions"
+description: "Configure commands that operators can trigger on robots"
 ---
 
-> Action Configuration Object Schema
+Action definitions specify commands that can be sent to robots. Actions can be triggered manually by operators from dashboards, automatically in response to incidents, or offered as options when resolving incidents.
 
+## When to Use
 
+- **Remote control**: Allow operators to start/stop missions, change modes, or execute scripts
+- **Incident response**: Automatically trigger recovery actions when problems occur
+- **Custom workflows**: Build operator workflows with user input and confirmation dialogs
 
-```json
-{
-    "kind": "ActionDefinition",
-    "apiVersion": "v0.1",
-    "metadata": {
-        "id": "string",
-        "scope": "string"
-    },
-    "spec": {
-        "label": "string",
-        "description": "string",
-        "confirmation": {
-            "required": "boolean"
-        },
-        "widgets": ["string"],
-        "arguments": [{
-            "name": "string",
-            "type": "string",
-            "value": "any",
-            "dataSourceId": "string",
-            "input": {
-                "control": "",
-                "values": [{
-                    "label": "string",
-                    "value": "any"
-                }]
-            }
-        }]
-    }
-}
+## Action Types
+
+| Type | Description |
+|------|-------------|
+| `PublishToTopic` | Publishes a message to `/inorbit/custom_commands` ROS topic |
+| `RunScript` | Executes a shell script from `~/.inorbit/local/user_scripts` |
+| `InOrbitPage` | Navigates to a specific page in the InOrbit app |
+| `Url` | Opens an external URL |
+| `DispatchMission` | Dispatches a mission definition to a robot |
+
+## Spec Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | string | Yes | Action type (see above). |
+| `label` | string | Yes | Display label for buttons and dialogs. Keep short (1-2 words). |
+| `description` | string | No | Detailed description shown when inputting arguments. |
+| `group` | string | No | Group name for organizing actions in the UI. |
+| `lock` | boolean | No | If `true`, requires robot lock before execution. Default: `false`. |
+| `confirmation` | object | No | If `required: true`, prompts for confirmation before execution. |
+| `condition` | object | No | Rules that determine when the action is available. |
+| `widgets` | array | No | Widgets where this action appears. Currently only `"navigation"` supported. |
+| `arguments` | array | No | List of action arguments. |
+
+## Arguments
+
+Arguments provide values for action execution.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Argument name (optional for positional args). |
+| `type` | string | `"string"` or `"number"`. Default: `"string"`. |
+| `value` | any | Fixed value for this argument. |
+| `dataSourceId` | string | Data source to get value from at runtime. |
+| `input` | object | Prompts user for input before execution. |
+
+### User Input
+
+Prompt operators for input using the `input` field:
+
+| Control | Description |
+|---------|-------------|
+| `text` | Free-form text input |
+| `select` | Dropdown selection from predefined values |
+
+```yaml
+arguments:
+  - name: "destination"
+    input:
+      control: "select"
+      values:
+        - label: "Warehouse A"
+          value: "warehouse_a"
+        - label: "Warehouse B"
+          value: "warehouse_b"
 ```
 
-> Action definition example, using the value of a data source as an argument for a script execution.
+### Template Replacements
 
-```json
-{
-    "kind": "ActionDefinition",
-    "apiVersion": "v0.1",
-    "metadata": {
-        "id": "CancelCurrentMission",
-        "scope": "account"
-    },
-    "spec": {
-        "type": "RunScript",
-        "label": "Cancel Mission",
-        "arguments": [
-            {
-              "label": "filename",
-              "value": "mission.sh",
-            },
-            {
-              "label": "filename",
-              "value": "--cancel",
-            },
-            {
-              "label": "--mission-id",
-              "dataSourceId": "MissionDataSourceId",
-            }
-        ]
-    }
-}
+Use `{{{argName}}}` to substitute other argument values:
+
+```yaml
+arguments:
+  - name: "message"
+    value: "DELIVER|{{{floor}}}|{{{room}}}"
+  - name: "floor"
+    dataSourceId: "FloorNumber"
+  - name: "room"
+    dataSourceId: "RoomNumber"
 ```
 
-> This example would publish a message to a ROS topic, for example `"START_DELIVERY|4|404"`,
-> formatted using the current values of two robot data sources.
+## Examples
 
-```json
-{
-    "kind": "ActionDefinition",
-    "apiVersion": "v0.1",
-    "metadata": {
-        "id": "Start Delivery",
-        "scope": "account"
-    },
-    "spec": {
-        "type": "PublishToTopic",
-        "label": "Start Delivery",
-        "arguments": [
-            {
-              "label": "message",
-              "value": "START_DELIVERY|{{{floor}}}|{{{room}}}",
-            },
-            {
-              "label": "floor",
-              "dataSourceId": "FloorNumber",
-            },
-            {
-              "label": "room",
-              "dataSourceId": "RoomNumber",
-            }
-        ]
-    }
-}
+### Publish to ROS Topic
+
+```yaml
+kind: ActionDefinition
+apiVersion: v0.1
+metadata:
+  id: "startDelivery"
+  scope: account/<accountId>
+spec:
+  type: "PublishToTopic"
+  label: "Start Delivery"
+  group: "Missions"
+  arguments:
+    - name: "message"
+      value: "START_DELIVERY|{{{floor}}}|{{{room}}}"
+    - name: "floor"
+      dataSourceId: "FloorNumber"
+    - name: "room"
+      dataSourceId: "RoomNumber"
 ```
 
-The `ActionDefinition` kind allows configuring robot **Actions**. Actions are commands sent to the robots.
-By configuring actions, operators can execute commands on the robots.
-Actions can be hooked to incidents to be automatically run or offered as options for operators
-to manually run when an incident occurs.
-[Learn more](https://www.inorbit.ai/docs?hsLang=en#configure-actions).
+### Run Script with Confirmation
 
-There are various types of actions and their configuration options vary depending on this type
-as well on the way they should run.
-The following is a reference for all configuration fields.
-Note that some options are only available to specific Editions,
-see [pricing page](https://www.inorbit.ai/pricing?hsLang=en).
+```yaml
+kind: ActionDefinition
+apiVersion: v0.1
+metadata:
+  id: "cancelMission"
+  scope: account/<accountId>
+spec:
+  type: "RunScript"
+  label: "Cancel Mission"
+  description: "Cancels the currently running mission"
+  group: "Mission Control"
+  lock: true
+  confirmation:
+    required: true
+  arguments:
+    - value: "mission.sh"
+    - value: "--cancel"
+    - name: "mission-id"
+      dataSourceId: "MissionDataSourceId"
+```
 
-- `id`: Identifies the action. The number of user-defined actions can be limited in some editions.
-- `type`: The action type, including executing scripts, publishing data to ROS topics, etc. (See below)
-- `label`: A label to display in dialogs and buttons when this action is about to run. It is recommended to keep it short (one or two words).
-- `description`: A more comprehensive description of the action, that will be displayed when action arguments are about to be input by a user.
-- `confirmation`: Determines if the action requires an extra confirmation from the user before being executed. This confirmation will occur only if `required: true` is part of this object.
-- `arguments`: A list of action arguments. These may be necessary depending on the action type and if its execution depends on user input or the robot state -- See next sections.
-- `widgets`: A list of widgets this action should appear on for quick access. The only allowed value in this version is `"navigation"`.
+### User Input with Dropdown
 
-### Action types
+```yaml
+kind: ActionDefinition
+apiVersion: v0.1
+metadata:
+  id: "setSpeed"
+  scope: account/<accountId>
+spec:
+  type: "RunScript"
+  label: "Set Speed"
+  confirmation:
+    required: true
+  arguments:
+    - value: "set_speed.sh"
+    - name: "speed"
+      input:
+        control: "select"
+        values:
+          - label: "Slow"
+            value: "0.5"
+          - label: "Normal"
+            value: "1.0"
+          - label: "Fast"
+            value: "1.5"
+```
 
-There are different action types to perform a number of robot actions.
-Each action type may expect some pre-defined arguments.
+### Dispatch Mission
 
-- `PublishToTopic`: Publishes the value of `message` argument through the `/inorbit/custom_commands` topic. Its string value may contain *replacements*, see below.
-- `RunScript`: Executes a shell script (indicated by `filename` argument) which must exist in the `${HOME}/.inorbit/local/user_scripts` directory in the robot. Any additional argument specified in the argument sent as argument to the script.
-- `InOrbitPage`: Defines an action to jump to a specific page or section in the InOrbit app, as defined by the `path` argument. It is only available through the app in widgets and notifications (in app or notification channels).
-- `Url`: Allows inserting a link to jump to an arbitrary (external) page, e.g. a third party incident management tool. The `url` argument defines the page, which may contain *replacements*, see below.
-- `DispatchMission`: Dispatches a mission definition to a robot. The `missionDefinitionId` argument defines the mission definition to dispatch.
+```yaml
+kind: ActionDefinition
+apiVersion: v0.1
+metadata:
+  id: "startPatrol"
+  scope: account/<accountId>
+spec:
+  type: "DispatchMission"
+  label: "Start Patrol"
+  group: "Missions"
+  arguments:
+    - name: "missionDefinitionId"
+      value: "patrol-route-a"
+```
 
-### Arguments and User Input
+## Related Documentation
 
-Each action type depends on specific **arguments** to be executed.
-
-Some actions arguments, listed in the previous section,
-allow performing *replacements*. For example, one could publish a message (via `PublishToTopic` action type) which includes the value of a given data source. To use this feature, define additional arguments and include their label within double curly brackets. This variable will be replaced with the value in the main argument.
-See examples below.
-
-Alternatively, arguments could be input by users at the time the action is executed.
-This feature is only available to some Editions.
-Defining an `input` element in at least one argument, causes a dialog modal to pop up before
-the action is executed in order to set the argument values.
-
-The accepted values for `input` are `"text"` and `"select"`. The first one prompts a user with a
-text entry dialog. The second one expects an additional property, `values`, to include the list
-of **options** from which the user can select this value. Each option must be an objet with
-`{ label, value }`: The `value` is sent to the action execution, while the `label` is only for
-display at the dialog when for the user to know what the option is about.
-
-### Actions Examples
-
-The first definition given as example defines an action that, when run,
-executes a script `mission.sh` from the scripts directory `${HOME}/.inorbit/local/user_scripts`,
-passing the arguments: `--cancel --mission-id `, where `` is the current value
-of `MissionDataSourceId` data source.
-
-Note that some arguments have a `label`, passed to the script execution, and others do not.
-Also, some arguments may have a fixed value (`"mission.sh"` or `"--cancel"`) and others take
-the value of a data source (`MissionDataSourceId`). Alternatively, the actual value can be
-user-provided, when using the `input` field (only available to some Editions).
-
-The second example defines a `PublishToTopic` action, which publishes a message to a ROS topic
-(its type is a string: `std_msgs/String`).
-
-Such message can be defined in advance in the `message` argument, or it can also be composed
-using replacements from data sources values. In the example, the data sources `FloorNumber` and
-`RoomNumber`, are data points for the destination of a robot hotel on a delivery mission. They are concatenated to form a single string message that a ROS node in the robot could receive and use to start a
-mission.
+- [Mission Definitions](/ground-control/configuration/kinds/mission-definitions) — Define missions to dispatch
+- [Incident Definitions](/ground-control/configuration/kinds/incident-definitions) — Attach actions to incidents

@@ -1,0 +1,169 @@
+---
+title: "Opsgenie Integration"
+description: "2-way incident synchronization with Opsgenie"
+---
+
+InOrbit integrates with Opsgenie, Atlassian's platform for on-call and alert management. This integration provides 2-way synchronization between InOrbit incidents and Opsgenie alerts.
+
+## What You Get
+
+<CardGroup cols={2}>
+  <Card title="InOrbit → Opsgenie" icon="arrow-right">
+    Incidents in InOrbit create alerts in Opsgenie with full robot context.
+  </Card>
+  <Card title="Opsgenie → InOrbit" icon="arrow-left">
+    Alerts created in Opsgenie can trigger incidents in InOrbit.
+  </Card>
+</CardGroup>
+
+### Synchronization
+
+| InOrbit Action | Opsgenie Result |
+|----------------|-----------------|
+| Incident triggers | Alert created |
+| Incident resolved | Alert closed |
+| Incident acknowledged | Alert acknowledged |
+
+| Opsgenie Action | InOrbit Result |
+|-----------------|----------------|
+| Alert created (with robot entity) | Incident created |
+| Alert closed | Incident resolved |
+
+## Alert Enrichment
+
+Opsgenie alerts include rich context from InOrbit:
+- Latest events from audit log
+- Current robot status
+- Robot collections and tags
+- Direct link to robot in InOrbit
+
+## Setup Instructions
+
+### Step 1: Create API Key in Opsgenie
+
+1. Log in to Opsgenie
+2. Go to **Settings** → **Integration List**
+3. Click **Add Integration**
+4. Select **REST API HTTPS over JSON**
+5. Configure the integration and save
+6. **Copy the generated API Key**
+
+### Step 2: Configure Opsgenie in InOrbit
+
+1. Log in to InOrbit Control as an Administrator
+2. Click the three-dot menu (upper right) → **Settings**
+3. Go to **Admin** → **Integrations**
+4. Find **Opsgenie** and turn it on
+5. Paste the API Key from Step 1
+6. Save
+
+### Step 3: Configure Opsgenie Webhook
+
+To enable Opsgenie → InOrbit synchronization:
+
+1. In Opsgenie, go to **Settings** → **Integration List**
+2. Click **Add Integration**
+3. Select **Webhook**
+4. Configure the webhook:
+   - **Name**: InOrbit Webhook
+   - **Webhook URL**: Copy from InOrbit's Opsgenie configuration ("Opsgenie webhook URL")
+   - **Custom Header**: Add header `x-opsgenie-webhook-token` with the value from InOrbit ("Opsgenie webhook token")
+5. Enable these options:
+   - ✅ Add Alert Description to Payload
+   - ✅ Add Alert Details to Payload
+6. Save the integration
+
+<Warning>
+  The webhook token is a security key. Keep it confidential.
+</Warning>
+
+## Using the Integration
+
+### Route InOrbit Incidents to Opsgenie
+
+1. Go to **Settings** → **Incidents**
+2. Edit or create an incident definition
+3. In **Alert Channel**, select **Opsgenie**
+4. Save
+
+When this incident triggers, an alert is created in Opsgenie.
+
+### Create InOrbit Incidents from Opsgenie
+
+1. Create an alert in Opsgenie
+2. Set the **Entity** field to a robot name or ID
+3. An incident is automatically created in InOrbit for that robot
+
+<Note>
+  The Entity field must match an existing robot name or ID in InOrbit.
+</Note>
+
+## Configuration Options
+
+### Incident → Alert Mapping
+
+| InOrbit Field | Opsgenie Field |
+|---------------|----------------|
+| Incident name | Alert message |
+| Severity | Priority |
+| Robot name | Entity |
+| Description | Description |
+| Custom fields | Details |
+
+### Priority Mapping
+
+| InOrbit Severity | Opsgenie Priority |
+|------------------|-------------------|
+| Critical | P1 |
+| Error | P2 |
+| Warning | P3 |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Alerts not appearing in Opsgenie">
+    - Verify API key is correct
+    - Check that the incident has Opsgenie selected as alert channel
+    - Review InOrbit logs for API errors
+  </Accordion>
+  
+  <Accordion title="Webhook not working">
+    - Verify webhook URL is correct
+    - Check that the token header is configured
+    - Test the webhook from Opsgenie's interface
+  </Accordion>
+  
+  <Accordion title="Incidents not created from Opsgenie">
+    - Ensure Entity field contains valid robot name/ID
+    - Verify webhook configuration in Opsgenie
+    - Check InOrbit integration is enabled
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use for critical incidents">
+    Route only important incidents to Opsgenie to avoid alert fatigue.
+  </Accordion>
+  
+  <Accordion title="Set up escalation policies">
+    Configure Opsgenie escalation for incidents that aren't acknowledged quickly.
+  </Accordion>
+  
+  <Accordion title="Use teams">
+    Route different robot collections to different Opsgenie teams.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Incident Management" icon="bell" href="/space-intelligence/operations/incident-management">
+    Overview of incident management.
+  </Card>
+  <Card title="Webhooks" icon="globe" href="/space-intelligence/operations/integrations/webhooks">
+    Custom webhook integration.
+  </Card>
+</CardGroup>
+

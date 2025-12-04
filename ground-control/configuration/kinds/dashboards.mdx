@@ -1,319 +1,268 @@
 ---
 title: "Dashboards"
-description: "Configuration reference for Dashboards"
+description: "Build custom monitoring interfaces with widgets and layouts"
 ---
 
-> Basic Robot Dashboard
+Dashboards define the user experience for monitoring and operating robot fleets. They organize data into sections and widgets that can be customized per robot type using conditional display rules.
 
-```json
-{
-    "kind": "DashboardDefinition",
-    "apiVersion": "v0.1",
-    "metadata": {
-        "id": "my-robot-dashboard",
-        "scope": "account"
-    },
-    "spec": {
-        "label": "Robot",
-        "sections": [
-            {
-              "label": "Health",
-              "scope": "robot",
-              "withControlWidget": true,
-              "widgets": [{
-                  "type": "chart",
-                  "label": "Vitals",
-                  "dataSources": [{
-                    "id": "cpuLoadPercentage",
-                    "label": "CPU",
-                    "type": "gauge"
-                  }, {
-                    "id": "ramUsagePercentage",
-                    "label": "Memory",
-                    "type": "gauge"
-                  }, {
-                  "type": "chart",
-                  "label": "Timeline",
-                  "layout": {
-                    "grid": 8,
-                    "chroma": true,
-                    "rows": 1
-                  },
-                  "dataSources": [{
-                    "id": "cpuLoadPercentage",
-                    "label": "CPU",
-                    "op": "maximum"
-                  }, {
-                    "id": "ramUsagePercentage",
-                    "label": "Memory",
-                    "op": "average"
-                  }]
-              }]
-            }
-        ],
-        "order": 3
-    }
-}
-```
+<Tip>
+Start with dashboards created through the Settings UI, then export them using the CLI for easier configuration.
+</Tip>
 
-Dashboards define the user experience for you and other users in your account.
-They define what information is displayed to monitor and operate robot fleets, which is highly
-dependent on the robots characteristics, monitoring and operational needs, and size of fleet among
-other factors. Refer to [this document](https://www.inorbit.ai/docs#create-dashboards)
-for an overview of what you can do with Dashboards and its related concepts: Sections and Widgets.
+Dashboards are configured through the `DashboardDefinition` kind using a unique `id` at `"account"` scope only.
 
-This section gives a specification for dashboards to configure them through Configuration APIs.
-This is a rather advanced usage and allows to fine-tune the experience providing further control
-on each configuration parameter as well as to apply Configuration Management practices to your
-account. It is adviced to start with dashboards defined through the Settings interface, then
-export them using the Config APIs with the CLI, for an easier start with a mostly configured dashboard.
+## When to Use
 
-Dashboards can be customized depending on robot types or other conditions.
-Different widgets can appear to display only those that make sense to the selected robot,
-as well as to offer only the actions that apply to this robot. Further detail on [Robot-based dashboards customization](#robot-based-customization).
+- **Custom views**: Build monitoring interfaces tailored to your robot types and operations
+- **Per-robot-type dashboards**: Show different widgets based on robot tags
+- **Operational workflows**: Organize actions, cameras, and data for efficient operation
 
-Dashboards are configured through the `DashboardDefinition` kind, using a unique `id` and only
-at `"account"` level. A dashboard must have a `label`, and can define a numeric `order` property
-to define the order it appears as compared to order dashboards `order` value.
+## Top-Level Fields
 
-Each dashboard defines a list of `sections`. Sections also define a `label` or title.
-They use a `withControlWidget` property to define if a control bar appears in the section,
-allowing to select the current robot, or timeframe to display, or current filters.
-it is normally recommended to have a control widget; except when multiple sections of the same
-`scope` appear in the same dashboard.
-Sections also have a `scope` that define the type of widgets that can appear in the section.
-Valid scopes are:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | string | Yes | Display name for the dashboard. |
+| `order` | number | No | Numeric order relative to other dashboards. |
+| `sections` | array | Yes | List of dashboard sections. |
 
- * `"fleet"`: To display information about a set of robots (or the entire fleet), such as
-   an overview of all robots' statuses, a list of incidents, audit log, etc.
- * `"robot"`: A section that displays (normally current) information about a selected robot
- * `"navigation"`: Normally contains a single Navigation widget, which allows to view a robot
-   in its map (position, planned path, costmap, traffic zones), with cameras and controls
-   to tele-operate it.
- * `"timeCapsule"`: To contain [Time Capsules](https://www.inorbit.ai/docs#time-capsule),
-   a tool to analyze past events on a robot around a given point in time to perform root cause
-   analysis and optimize robot behavior.
- * `"mission"`: Reserved for widgets to display missions' metrics (KPIs). Note that this feature
-   is not available on all Editions.
+## Sections
 
-Sections can also be displayed or hidden conditionally (see below).
+Sections group widgets and define their scope.
 
-Sections contain a list of `widgets`, which are the actual contents and most important part
-of a dashboard. There are many different widget types.
-Every widget contains some common properties like a `label` and a `type` (see below), and a
-`layout` defining its size and position.  Just like sections, widgets can also be displayed
-conditionally (see below).
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | string | Yes | Section title. |
+| `scope` | string | Yes | Widget scope (see below). |
+| `withControlWidget` | boolean | No | Show control bar for robot/timeframe selection. |
+| `widgets` | array | Yes | List of widgets in this section. |
+| `conditional` | object | No | Show section only for robots with specific tags. |
 
-Depending on the widget `type`, each widget accepts its own parameters in a `config` object:
-for example which data sources to display, or what actions to offer to execute, etc.
-Valid options for `config` objects are listed below; except for widgets that do not have
-any configuration options (they only accept an empty `{}` object).
+### Section Scopes
 
-### Fleet widgets
+| Scope | Description |
+|-------|-------------|
+| `"fleet"` | Fleet-wide information (status overview, incidents, audit log). |
+| `"robot"` | Current data for a selected robot. |
+| `"navigation"` | Map view with position, path, costmap, and teleoperation. |
+| `"timeCapsule"` | Historical data for root cause analysis. |
+| `"mission"` | Mission metrics and KPIs. |
 
-  * `"fleetStatus"`: The main widget to display the list of robots
-  and their statuses (with Error, Warning, Ok). It can be configured with a list `statuses`, ids
-  of `StatusDefinition` objects to display a specific list of statuses (by default it displays those
-  configured globally in Settings UI).
-  * `"incidentTimeline"`: A calendar-like timeline of incidents for the entire fleet (or selected robots).
-  * `"incidentList"`: A listing incidents for the entire fleet (or selected robots). It works in sync
-with the Incident Timeline, and allows jumping to Time Capsule to dig into the time window of an incident.
-  * `"kpi"`: A widget with account-level KPIs such as number of robots, users/robots ratio, etc.
-  * `"locations"`: A world map with indicators of your configured locations and their states; that
-  can be zoomed in at location level to display its robots.
-  * `"auditLogFleet"`: An audit log for the fleet or a selected set of robots.
-  * `"fleetMissionTracker"`: A listing of missions already executed and being executed by the robots fleet.
-  It allows zooming into past missions to debug in Time Capsule.
+## Widget Configuration
 
-### Robot widgets
+Every widget has common properties plus type-specific configuration.
 
-All robot widgets display information or act on a _selected_ robot, which can be selected from the
-control widget or widgets that support selection (Fleet Status, Navigation).
+### Common Widget Fields
 
-***Data Sources***:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | string | Yes | Widget type (see below). |
+| `label` | string | No | Widget title. |
+| `layout` | object | No | Size and position configuration. |
+| `conditional` | object | No | Show widget only for robots with specific tags. |
 
-  * `"chart"`: A timeline chart displaying variation in values of multiple data sources.
-  It displays a line chart by default, unless a `chartType` property is used (valid values: `"linechart"` and `"areachart"`).
-  It requires a list `dataSources` objects with the data sources to display. Each data source must have an `id` and `label`, and can also specify a numeric `precision` and `scale` to adjust values; and also the operation
-  to perform to aggregate values in time windows (one of `"average"`, `"count"`, `"maximum"`, `"minimum"`, `"sum"`, `"last"`).
-  Scale in Y-axis is automatically adjusted, unless two properties `min` and `max` are given to fix the scale.
-  See example on the right sidebar.
-  * `"vitals"`: A widget that supports displaying up to 4 data sources values.
-  Its `dataSources` list contains the data sources identified with `id` and `label`.
-  An optional `unit` can be specified for each data source, as well as a `type` of visualization:
-  a `"text"` representation of a `"gauge"` used normally with numeric values.
-  * `"listData"`: It displays several data sources in a table. It is configured similarly to `"vitals"`,
-  with a list of `dataSources` with `id`, `label` and `precision`.
-  * `"keyValues"`: It displays a list of all key-value pairs reported by the robot with their most recent updatd timestamp.
-  * `"history"`: It displays a table with the most recent updates received to a specific data source,
-  and their timestamps.
-  * `"stateTransitions"`: Similarly to `chart`, it displays a timeline of several data sources;
-  with colored bars representing how long each data source stays in a given value and changing colors
-  when those states change. It is configured with a `dataSources` list of objects with `id` and `label`.
-
-***Monitoring and operation***:
-
-  * `"localization"`: A small version of the Navigation widget (see next _scope_), displaying the robot
-  in a small map.
-  * `"actions"`: Displays configured actions that can be execute on the robot. All configured actions
-  are displayed, except if a list of strings `actionIds` is explicitly given to limit the selection.
-  Two other boolean values can be used to tweak the appearance: `expanded` will auto-expand action groups,
-  and `bigButtons` displays larger buttons (useful for dashboards prepared for mobile devices).
-  * `"cameraWidget"`: A widget displaying the a live camera. It is configured with a single `cameraId`
-  string that identifies the camera to display.
-  * `"tagsAndModes"`: A listing of all tags assigned to a robot, including its current Mode. It also
-  allows editing those tags.
-  * `"missionTracker"`: It displays the most recent missions executed by the selected robot.
-
-***Auditing***:
-
-  * `"auditLog"`: Displays a log of the most recent events of the robot (or those events in the selected
-  time window).
-  * `"diagnostics"`: A visualization of data reported as ROS Diagnostics, for ROS-based robots.
-  * `"dataBags"`: A listing of _rosbags_ and other files (logs, etc.) configured to be collected by the robot.
-  Each file has an option to be uploaded from the robot to the cloud (to later download it, without the
-  user needing to connect to the robot).
-
-### Navigation widgets
-
-  * `"navigation"`: The only widget for a Navigation dashboard.
-  It displays a map with the current position of the robot in its map, displaying (if reported) its
-  paths, costmap, lidars readings and camera images.
-  It can also display other robots in the area, as well as map features
-  such as traffic zones, named waypoints, etc.
-  Additionally, if supported by the robot and configured, it also allows doing teleoperation.
-
-### Time Capsule widgets
-
-These widgets are specialized versions of some widgets already listed above; with the excpetion that
-they do not show "live" data but instead are controlled through the Time Capsule toolbar, to display
-past data at specific points in time.
-
-  * `"timeCapsuleMap"`: A version of `"navigation"` to work within Time Capsule.
-  * `"timeCapsuleSegmentLogs'"`: A version of `stateTransitions` to work within Time Capsule
-  * `"timeCapsuleAuditLogs"`: A version of `auditLog` to work within Time Capsule
-  * `"timeCapsuleDataBags"` A version of `dataBags` to work within Time Capsule
-
-### Mission widgets
+### Layout Configuration
 
 ```yaml
-apiVersion: v0.1
+layout:
+  grid: 8      # Width in grid units (1-12)
+  rows: 2      # Height in rows
+  chroma: true # Use color-coded display
+```
+
+## Fleet Widgets
+
+| Type | Description |
+|------|-------------|
+| `fleetStatus` | Robot list with statuses (Error, Warning, Ok). |
+| `incidentTimeline` | Calendar timeline of incidents. |
+| `incidentList` | List of incidents with Time Capsule links. |
+| `kpi` | Account-level KPIs. |
+| `locations` | World map with location indicators. |
+| `auditLogFleet` | Fleet-wide audit log. |
+| `fleetMissionTracker` | Mission listing for entire fleet. |
+
+## Robot Widgets
+
+### Data Visualization
+
+| Type | Description |
+|------|-------------|
+| `chart` | Timeline chart (line/area). |
+| `vitals` | Up to 4 data sources as text or gauges. |
+| `listData` | Data sources in table format. |
+| `keyValues` | All key-value pairs with timestamps. |
+| `history` | Recent updates to a specific data source. |
+| `stateTransitions` | Colored timeline of state changes. |
+
+### Monitoring & Control
+
+| Type | Description |
+|------|-------------|
+| `localization` | Small map showing robot position. |
+| `actions` | Executable actions for the robot. |
+| `cameraWidget` | Live camera feed. |
+| `tagsAndModes` | Robot tags and current mode. |
+| `missionTracker` | Recent missions for selected robot. |
+
+### Auditing
+
+| Type | Description |
+|------|-------------|
+| `auditLog` | Recent robot events. |
+| `diagnostics` | ROS Diagnostics visualization. |
+| `dataBags` | Rosbags and log files. |
+
+## Example
+
+```yaml
 kind: DashboardDefinition
+apiVersion: v0.1
 metadata:
-  id: my-dashboard
-  scope: account
+  id: "robot-monitoring"
+  scope: account/<accountId>
 spec:
-  label: KPIs
+  label: "Robot"
+  order: 3
   sections:
-  - comment: ''
-    label: Missions
-    scope: mission
+    - label: "Health"
+      scope: "robot"
+      withControlWidget: true
+      widgets:
+        - type: "vitals"
+          label: "System Vitals"
+          dataSources:
+            - id: "cpuLoadPercentage"
+              label: "CPU"
+              type: "gauge"
+            - id: "ramUsagePercentage"
+              label: "Memory"
+              type: "gauge"
+            - id: "batteryLevel"
+              label: "Battery"
+              type: "gauge"
+        - type: "chart"
+          label: "Timeline"
+          layout:
+            grid: 8
+            rows: 1
+          dataSources:
+            - id: "cpuLoadPercentage"
+              label: "CPU"
+              op: "maximum"
+            - id: "ramUsagePercentage"
+              label: "Memory"
+              op: "average"
+    - label: "Actions"
+      scope: "robot"
+      widgets:
+        - type: "actions"
+          config:
+            actionIds:
+              - "emergency-stop"
+              - "return-to-dock"
+            expanded: true
+```
+
+## Widget-Specific Configuration
+
+### chart
+
+```yaml
+type: "chart"
+chartType: "linechart"  # or "areachart"
+dataSources:
+  - id: "cpuLoadPercentage"
+    label: "CPU"
+    op: "average"  # average, count, maximum, minimum, sum, last
+    precision: 2
+min: 0
+max: 100
+```
+
+### vitals
+
+```yaml
+type: "vitals"
+dataSources:
+  - id: "battery"
+    label: "Battery"
+    type: "gauge"  # or "text"
+    unit: "%"
+```
+
+### actions
+
+```yaml
+type: "actions"
+config:
+  actionIds:
+    - "action1"
+    - "action2"
+  expanded: true
+  bigButtons: false
+```
+
+### cameraWidget
+
+```yaml
+type: "cameraWidget"
+config:
+  cameraId: "0"
+```
+
+### missionKPI
+
+```yaml
+type: "missionKPI"
+config:
+  kpis:
+    - kpiDefinitionId: "mission-success-rate"
+    - kpiDefinitionId: "missions"
+      display:
+        isHeader: true
+        icon: "MISSION"
+  tableColumns:
+    - id: "status"
+      label: "Status"
+      type: "statusChip"
+      config:
+        attributeIds:
+          - "data.status"
+    - id: "missionName"
+      label: "Mission"
+      type: "string"
+      config:
+        attributeIds:
+          - "data.label"
+```
+
+## Conditional Display
+
+Show sections or widgets only for robots with specific tags:
+
+```yaml
+sections:
+  - label: "Cleaning Controls"
+    scope: "robot"
+    conditional:
+      tags:
+        - "cleaning-robot"
     widgets:
-    - config:
-        kpis:
-          - kpiDefinitionId: mission-success-rate
-          - kpiDefinitionId: mission-duration
-          - kpiDefinitionId: mission-distance
-          - kpiDefinitionId: "missions"
-            display:
-              isHeader: true
-              icon: "MISSION"
-          - kpiDefinitionId: "robots"
-            display:
-              isHeader: true
-              icon: "ROBOT"
-        tableColumns:
-          - id: "status"
-            label: "Status"
-            config:
-              attributeIds:
-                - "data.status"
-            type: "statusChip"
-          - id: "missionName"
-            label: "Mission name"
-            type: "string"
-            config:
-              attributeIds:
-                - "data.label"
-          - id: "robotName"
-            label: "robot name"
-            type: "string"
-            config:
-              attributeIds:
-                - "data.robotName"
-          - id: "startTs"
-            label: "Start"
-            type: "time"
-            config:
-              attributeIds:
-                - "startTs"
-          - id: "endTs"
-            label: "End"
-            type: "time"
-            config:
-              attributeIds:
-                - "endTs"
-          - id: "duration"
-            label: "Duration"
-            type: "withUnit"
-            config:
-              attributeIds:
-                - "data.duration"
-              unit: "ms"
-      label: Mission KPI
-      layout:
-        grid: 12
-        withoutBackground: true
-      type: missionKPI
-    withControlWidget: true
+      - type: "actions"
+        label: "Cleaning Actions"
+        conditional:
+          tags:
+            - "has-vacuum"
+        config:
+          actionIds:
+            - "start-cleaning"
+            - "stop-cleaning"
 ```
 
-  * `"missionDefinitions"`: It displays mission definitions and their steps.
-  It also allows dispatching missions for their execution.
-  * `"missionKPI"`: It displays aggregated information on missions executed by the fleet, allowing
-  to perform various filters such as by time, robot tags, mission results. It can be configured with:
-    - `kpis`: A list of KPI definitions to display, each with a `kpiDefinitionId` that references a configured KPI.
-    - `tableColumns`: A list of column configurations for the mission data table. Each column includes:
-      - `id`: Unique identifier for the column
-      - `label`: Display name for the column header
-      - `type`: Column data type (e.g., "statusChip", "string", "time", "withUnit")
-      - `config`: Configuration object containing:
-        - `attributeIds`: Array of field paths to extract data from KPI objects. All, but `statusChip` type columns, accept any number of attributes in the `attributeIds` list.
-        In this case, the first attribute that exists in the KPI object will be used.
-        For `statusChip` type columns, `attributeIds` is ignored. The mission state and status are used to determine the status chip.
-        - `unit`: Unit of measurement (for "withUnit" type columns). It's used to display the value with the unit in the table. 
-        For known units, like "m" and "ms", data values are assumed to be in the set unit and the value is converted to whichever unit is more convenient for display.
+This allows creating dashboards that display differently based on robot type or capabilities.
 
-See [KPI Definitions](#configuring-kpi-definitions) section for more details on the fields available for KPI objects.
+## Related Documentation
 
-
-
-## Conditional functionality
-
-```json
-{
-    "kind": "DashboardDefinition",
-    "apiVersion": "v0.1",
-    "metadata": {
-        "id": "my-dashboard",
-        "scope": "account"
-    },
-    "spec": {
-        "sections": [{
-          "label": "A conditional section",
-          "conditional": {
-            "tags": ["only-this-tag"]
-          },
-          "widgets": [...]
-        }]
-    }
-}
-```
-
-To allow conditional display of widgets or entire sections, both elements allow to be toggled on
-only if the current robot has been assigned a tag. This allows creating dashboards that will
-display differently for different robots.
-See [Robot-based Customization](#robot-based-customization) section for more details.
-
-The configuration for this feature is given by an object like `{ "conditional": { "tags": ["my-tag"] } }`,
-specifying either in a section or a widget that will only be displayed if the robot contains tag "my-tag".
+- [KPI Definitions](/ground-control/configuration/kinds/kpi-definitions) — Define metrics for mission widgets
+- [Action Definitions](/ground-control/configuration/kinds/action-definitions) — Create actions for dashboard buttons
+- [Data Sources](/ground-control/configuration/kinds/data-sources) — Configure data for charts and vitals

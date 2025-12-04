@@ -1,0 +1,178 @@
+---
+title: "Navigation Dashboard"
+description: "Monitor and control robot navigation in real-time"
+---
+
+The Navigation dashboard lets you monitor a robot's movement via map and camera views, along with key data relevant during navigation. It's designed for real-time monitoring and intervention when needed.
+
+## Dashboard Layout
+
+The Navigation dashboard typically includes:
+
+- **Map View** - Robot position and planned path
+- **Camera View** - Live video feed from the robot
+- **Vitals** - Key metrics like battery and speed
+- **Navigation Controls** - Commands for directing the robot
+
+## Robot Selector
+
+Use the robot selector in the upper left to switch between robots. This allows quick monitoring of different robots without leaving the dashboard.
+
+## Map Widget
+
+The map shows:
+
+### Robot Position
+- Current robot location (icon on map)
+- Orientation/heading
+- Position confidence indicator
+
+### Navigation Path
+- Planned route (when navigating)
+- Waypoints along the route
+- Obstacles detected
+
+### Map Features
+- Zones (restricted, speed limit, etc.)
+- Waypoints (named destinations)
+- Other robots (if multiple in same area)
+
+### Map Controls
+- **Zoom** - In/out for detail or overview
+- **Pan** - Move around the map
+- **Center on robot** - Return view to robot
+- **Toggle layers** - Show/hide zones, paths, etc.
+
+## Camera View
+
+Live video feed from the robot's camera:
+
+- Front camera (navigation view)
+- Rear camera (if available)
+- Additional cameras (robot-dependent)
+
+### Hi-Rez Mode
+
+<Note>
+  Hi-Rez mode is an optional feature that can be requested.
+</Note>
+
+Toggle the **Hi-rez** button to temporarily improve video quality:
+- Higher resolution stream
+- Useful for detailed inspection
+- Consumes more bandwidth
+
+## Navigation Controls
+
+Send navigation commands directly from the dashboard:
+
+### Go To Waypoint
+1. Select a waypoint from the list
+2. Click **Navigate**
+3. Robot plans and executes route
+
+### Click-to-Navigate
+1. Click a point on the map
+2. Confirm the destination
+3. Robot navigates to that position
+
+### Cancel Navigation
+Stop the current navigation task:
+- Click **Cancel** or **Stop**
+- Robot halts and awaits further instructions
+
+### Manual Override
+
+<Warning>
+  Manual control requires appropriate permissions and should be used carefully.
+</Warning>
+
+Some robots support manual control:
+- Joystick-style directional control
+- Speed adjustment
+- Rotation control
+
+## Real-Time Data
+
+Key metrics displayed during navigation:
+
+| Metric | Description |
+|--------|-------------|
+| **Speed** | Current velocity |
+| **Battery** | Remaining charge |
+| **Distance** | To destination |
+| **ETA** | Estimated arrival time |
+| **Localization** | Position confidence |
+| **Obstacles** | Detected obstructions |
+
+## Mission Context
+
+If the robot is on a mission:
+- Mission name and status
+- Current task in mission
+- Progress indicator
+- Mission timeline
+
+## Multi-Robot View
+
+For monitoring multiple robots simultaneously:
+- Open multiple browser tabs
+- Use picture-in-picture mode
+- Create a multi-robot dashboard (Enterprise)
+
+<Info>
+  Multi-robot navigation monitoring with synchronized views is available in **Enterprise** edition.
+</Info>
+
+## Alerts During Navigation
+
+The dashboard highlights issues:
+- 🔴 **Navigation failed** - Cannot reach destination
+- 🟡 **Obstacle detected** - Replanning route
+- 🟡 **Low battery** - May need to charge
+- 🔴 **Localization lost** - Robot is uncertain of position
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Monitor actively during critical tasks">
+    Keep the Navigation dashboard open during important deliveries or in busy environments.
+  </Accordion>
+  
+  <Accordion title="Use waypoints, not coordinates">
+    Named waypoints are easier to use and verify than raw coordinates.
+  </Accordion>
+  
+  <Accordion title="Check camera before remote navigation">
+    Use the camera to verify the robot's surroundings before sending navigation commands.
+  </Accordion>
+  
+  <Accordion title="Have a cancel plan">
+    Know how to quickly stop navigation if something goes wrong.
+  </Accordion>
+</AccordionGroup>
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Space` | Pause/resume navigation |
+| `Esc` | Cancel current navigation |
+| `C` | Center map on robot |
+| `+` / `-` | Zoom in/out |
+| `←` `→` | Previous/next robot |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Locations Dashboard" icon="building" href="/space-intelligence/dashboards/locations">
+    Configure maps and waypoints.
+  </Card>
+  <Card title="Maps Concepts" icon="map" href="/ground-control/concepts/maps">
+    Understanding map configuration.
+  </Card>
+  <Card title="Traffic Management" icon="traffic-light" href="/ground-control/configuration/kinds/traffic-management">
+    Set up traffic zones and rules.
+  </Card>
+</CardGroup>
+

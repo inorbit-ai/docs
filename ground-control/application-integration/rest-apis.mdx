@@ -5,20 +5,53 @@ description: "RESTful APIs for integrating robot functionality"
 
 InOrbit offers REST and streaming APIs that enable programmatic access to InOrbit features. Using these APIs you can fetch data related to your robots, trigger actions, integrate with incident management systems and more.
 
+## Overview
+
+The InOrbit REST API provides programmatic access to all major InOrbit features. All API endpoints are authenticated using app keys. See [Authentication](/ground-control/authentication) for details on obtaining and using your API keys.
+
+<CardGroup cols={2}>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/ground-control/authentication"
+  >
+    Learn how to authenticate API requests
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="#api-reference"
+  >
+    Browse all available API endpoints
+  </Card>
+</CardGroup>
+
 ## Available API Categories
 
-- Robots
-- Collections & Tags
-- Attributes
-- Localization & Maps
-- Navigation
-- Robot Lock
-- Actions
-- Incidents
-- Mission Tracking
-- Push APIs
-- Advanced Settings
-- Audit Logs
+The REST API is organized into the following categories:
 
-Check the APIs' documentation and specs [here](https://api.inorbit.ai/docs/index.html).
+- **Robots** - List and retrieve robot information
+- **Collections & Tags** - Operations on collections and tags
+- **Attributes** - Operations on attributes (data sources values)
+- **Localization & Maps** - Queries on robots localization and maps
+- **Spaces** - Queries and operations on spaces (Beta)
+- **Navigation** - Operations related to robots navigation
+- **Locks** - APIs to lock and unlock robots
+- **Actions** - Operations on robots actions
+- **Incidents** - Operations to open and close incidents
+- **Missions** - Mission execution and control
+- **Mission Tracking** - Track robot missions' execution
+- **Traffic Management** - Retrieve and update Traffic Management & Zones information
+- **KPIs** - KPI queries
+- **Expressions** - Test and evaluate expressions
+- **InOrbit Connect** - Provisioning and management
+- **Config API** - Configuration management
+- **Camera Images** - Work with camera images
+- **Audit Logs** - Audit log queries
+
+## Getting Started
+
+All API requests should be made to `https://api.inorbit.ai` and include your app key in the `x-auth-inorbit-app-key` header.
+
+For detailed endpoint documentation, see the [API Reference](#api-reference) section below.
 

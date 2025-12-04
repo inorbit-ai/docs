@@ -1,0 +1,175 @@
+---
+title: "Incident Management"
+description: "Monitor, respond to, and resolve robot incidents"
+---
+
+InOrbit's incident management helps you detect issues with your robots, alert the right people, and track resolution. From battery warnings to navigation failures, incidents keep your team informed.
+
+## What Are Incidents?
+
+An **incident** is a notable event that requires attention:
+- **Warning** - Something may need attention soon
+- **Error** - Something is wrong and needs action
+- **Critical** - Immediate action required
+
+Incidents are triggered by conditions you define, like:
+- Battery below 15%
+- Robot offline for more than 5 minutes
+- Navigation failure
+- Temperature exceeding threshold
+
+## Viewing Incidents
+
+### Incident Dashboard
+
+The Incident dashboard shows:
+- **Active incidents** - Currently unresolved
+- **Recent incidents** - Recently triggered or resolved
+- **Incident timeline** - History over time
+
+### Incident Indicators
+
+Incidents appear throughout InOrbit:
+- Fleet dashboard - Red/yellow robot indicators
+- Robot dashboard - Incident widget
+- Notifications - Alerts to your channels
+
+## Incident Lifecycle
+
+```
+Triggered → Active → Acknowledged → Resolved
+              ↓
+         Escalated (if unacknowledged)
+```
+
+1. **Triggered** - Condition met, incident created
+2. **Active** - Incident is ongoing
+3. **Acknowledged** - Someone is aware and working on it
+4. **Resolved** - Issue is fixed (automatically or manually)
+
+## Responding to Incidents
+
+### Acknowledge
+
+When you start investigating an incident:
+1. Open the incident
+2. Click **Acknowledge**
+3. Add optional notes
+4. Incident shows "In Progress"
+
+### Resolve
+
+When the issue is fixed:
+1. Open the incident
+2. Click **Resolve**
+3. Select resolution reason:
+   - **Fixed** - Issue was corrected
+   - **False Positive** - Not actually an issue
+   - **Won't Fix** - Accepted as-is
+4. Add resolution notes
+5. Incident is closed
+
+### Auto-Resolution
+
+Some incidents resolve automatically when the condition clears:
+- Battery incident resolves when battery rises above threshold
+- Offline incident resolves when robot reconnects
+
+## Configuring Incidents
+
+<Note>
+  Incident configuration requires **Administrator** role. For detailed configuration, see [Incident Definitions](/ground-control/configuration/kinds/incident-definitions).
+</Note>
+
+### Basic Configuration
+
+1. Go to **Settings** → **Incidents**
+2. Click **Create Incident Definition**
+3. Configure:
+   - **Name** - "Low Battery Warning"
+   - **Severity** - Warning, Error, or Critical
+   - **Condition** - When to trigger
+   - **Message** - What to display
+4. Set notification channels
+5. Save
+
+### Example Incidents
+
+| Incident | Condition | Severity |
+|----------|-----------|----------|
+| Low Battery | battery < 15% | Warning |
+| Critical Battery | battery < 5% | Critical |
+| Robot Offline | disconnected > 5min | Error |
+| High Temperature | temp > 80°C | Error |
+| Localization Lost | localization_score < 0.5 | Warning |
+| Mission Failed | mission_status = failed | Error |
+
+## Alert Channels
+
+When incidents trigger, notify through:
+
+### In-App Notifications
+- Dashboard indicators
+- Notification bell
+- Incident widget
+
+### External Channels
+
+<CardGroup cols={2}>
+  <Card title="Opsgenie" icon="bell" href="/space-intelligence/operations/integrations/opsgenie">
+    2-way sync with Opsgenie alerts.
+  </Card>
+  <Card title="Webhooks" icon="globe" href="/space-intelligence/operations/integrations/webhooks">
+    Send to any HTTP endpoint.
+  </Card>
+</CardGroup>
+
+Configure channels in **Settings** → **Integrations**.
+
+## Incident Reports
+
+Generate incident reports:
+1. Go to **Reports** → **Incidents**
+2. Select time range
+3. Filter by:
+   - Severity
+   - Robot/Collection
+   - Location
+   - Resolution status
+4. Export as CSV or PDF
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start with the basics">
+    Begin with essential incidents (battery, connectivity) before adding complex conditions.
+  </Accordion>
+  
+  <Accordion title="Avoid alert fatigue">
+    Too many low-priority alerts train people to ignore them. Be selective.
+  </Accordion>
+  
+  <Accordion title="Use severity appropriately">
+    Reserve Critical for truly urgent issues. Warning for "check when convenient."
+  </Accordion>
+  
+  <Accordion title="Set up escalation">
+    Configure escalation for critical incidents that aren't acknowledged quickly.
+  </Accordion>
+  
+  <Accordion title="Review and tune">
+    Regularly review incident patterns and adjust thresholds to reduce noise.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Incident Definitions" icon="gear" href="/ground-control/configuration/kinds/incident-definitions">
+    Advanced incident configuration.
+  </Card>
+  <Card title="REST APIs" icon="code" href="/ground-control/application-integration/rest-apis">
+    Manage incidents programmatically.
+  </Card>
+</CardGroup>
+

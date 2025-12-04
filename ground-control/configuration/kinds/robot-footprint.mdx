@@ -1,38 +1,52 @@
 ---
 title: "Robot Footprint"
-description: "Configuration reference for Robot Footprint"
+description: "Configure the visual footprint representing a robot's occupied area on maps"
 ---
 
-> Robot Footprint Object Example
+The robot footprint defines the shape displayed on maps to represent the physical area a robot occupies. This visualization helps operators understand robot positioning, plan paths, and identify potential collision areas.
 
-```json
-{
-  "metadata": {
-    "scope": "<scope>",
-    "id": "all"
-  },
-  "apiVersion": "v0.1",
-  "kind": "RobotFootprint",
-  "spec": {
-    "footprint": [
-      { "x": -0.5, "y": -0.5 },
-      { "x":  0.3, "y": -0.5 },
-      { "x":  0.7, "y":  0.0 },
-      { "x":  0.3, "y":  0.5 },
-      { "x": -0.5, "y":  0.5 },
-    ],
-    "radius": 0.2,
-  }
-}
+Unlike most configuration kinds, `RobotFootprint` is a **global config**—only one per scope. The only accepted `id` value is `"all"`.
+
+## When to Use
+
+- **Non-circular robots**: Define a polygon footprint for rectangular, L-shaped, or custom robot shapes
+- **Buffer visualization**: Show an expanded footprint for safety margins or collision detection areas
+- **Multi-robot fleets**: Apply different footprints to different robot types using tag-level scopes
+
+## Spec Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `footprint` | array | No | Shape as a list of `{x, y}` points (minimum 3). Coordinates are in meters relative to robot position. If omitted, uses a circular shape based on `radius`. |
+| `bufferFootprint` | array | No | Expanded footprint for collision buffer visualization. Same format as `footprint`. |
+| `radius` | number | No | Size of the inner orientation indicator. Also determines circular footprint size if `footprint` is not provided. Set to `0` to hide the indicator. |
+
+<Note>
+If only `footprint` or `radius` is provided, the other is inherited from tag-level or account-level configuration.
+</Note>
+
+## Example
+
+```yaml
+kind: RobotFootprint
+apiVersion: v0.1
+metadata:
+  scope: account/<accountId>
+  id: "all"
+spec:
+  footprint:
+    - { x: -0.5, y: -0.5 }
+    - { x:  0.3, y: -0.5 }
+    - { x:  0.7, y:  0.0 }
+    - { x:  0.3, y:  0.5 }
+    - { x: -0.5, y:  0.5 }
+  bufferFootprint:
+    - { x: -0.6, y: -0.6 }
+    - { x:  0.4, y: -0.6 }
+    - { x:  0.8, y:  0.0 }
+    - { x:  0.4, y:  0.6 }
+    - { x: -0.6, y:  0.6 }
+  radius: 0.2
 ```
 
-The `RobotFootprint` kind allows configuring the *footprint* of a robot. The footprint is the area that the robot occupies in a map and it is used for representing the robot in map views.
-
-Unlike most other configurations in this section, `RobotFootprint` is a "global" config, meaning there can only be one per unique scope. For this reason, the only accepted `id` value is `"all"`.
-
-The `spec` of a robot footprint configuration has the following properties:
-
-- `footprint`: (Optional) Footprint shape, defined as a list of points of minimum length 3. Each point is an object with `x` and `y` properties, representing the position of the point in meters relative to the reported position of the robot. If not provided, the footprint will take a circular shape with a radius set by the `radius` property.
-- `radius`: (Optional) Sets the size of the inner orientation indicator. If set to `0`, no indicator will be shown. If `footprint` is not provided, the radius of the circular footprint will be adjusted proportionally to this number.
-
-**Note:** If only one of the two properties is provided, the other will be taken from the configuration applied to the robot's tag(s) or the configuration at the account level.
+This defines a pentagon-shaped robot with a slightly larger buffer zone for collision awareness.

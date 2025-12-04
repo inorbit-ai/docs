@@ -1,0 +1,117 @@
+---
+title: "InOrbit Agent"
+description: "Connect ROS robots with the InOrbit Agent"
+---
+
+The **InOrbit Agent** is the recommended way to connect ROS and ROS 2 robots to InOrbit. It runs directly on your robot, providing:
+
+- **Native ROS integration** — Automatic discovery of topics, maps, and cameras
+- **Secure communication** — Encrypted, optimized data channel to InOrbit cloud
+- **Adaptive sampling** — Smart throttling to minimize bandwidth
+- **Offline buffering** — Data is queued when connectivity is lost
+- **Scripted actions** — Execute commands on your robot from InOrbit
+- **Video streaming** — Stream camera feeds to InOrbit Control
+
+## Quick Start
+
+### 1. Get Your Account Key
+
+Log in to [InOrbit Console](https://console.inorbit.ai) and navigate to **Add Robot**. Copy your account key.
+
+### 2. Install the Agent
+
+Run this one-line command on your robot (replace `YOUR_ACCOUNT_KEY`):
+
+```bash
+curl "https://control.inorbit.ai/liftoff/YOUR_ACCOUNT_KEY" | sh
+```
+
+Follow the prompts to complete installation. The agent will start automatically and your robot will appear in InOrbit Control.
+
+<Info>
+By default, the robot name is its hostname. You can change this during installation or later in InOrbit Console.
+</Info>
+
+### 3. Verify Connection
+
+Check that the agent is running:
+
+```bash
+curl http://localhost:5000
+```
+
+You should see: `"InOrbit Agent API: OK"`
+
+## Installation Options
+
+### Debian Package
+
+For production deployments, install the agent as a Debian package:
+
+```bash
+curl "https://control.inorbit.ai/liftoff/YOUR_ACCOUNT_KEY?variant=deb" | sh
+```
+
+### Agent Core Only
+
+If you're using the Robot SDK and only need the core agent (without ROS integration):
+
+```bash
+curl "https://control.inorbit.ai/liftoff/YOUR_ACCOUNT_KEY?variant=core" | sh
+```
+
+## ROS Integration
+
+The agent automatically detects and subscribes to common ROS topics. You can customize which topics are mapped to InOrbit from [InOrbit Console](https://console.inorbit.ai) under robot settings.
+
+### Publishing Custom Data
+
+You can publish custom key-value data to InOrbit via ROS topics:
+
+```bash
+# ROS 1
+rostopic pub /inorbit/custom_data/0 std_msgs/String "battery=55"
+rostopic pub /inorbit/custom_data/0 std_msgs/String "status=docked"
+
+# ROS 2
+ros2 topic pub /inorbit/custom_data/0 std_msgs/String "data: 'battery=55'"
+```
+
+## Configuration
+
+Agent configuration is stored in `~/.inorbit/local/`. Key files:
+
+| File | Purpose |
+|------|---------|
+| `agent.env.sh` | Environment variables (API port, binding address) |
+| `inorbit_agent.log` | Agent logs |
+
+### Common Configuration
+
+Edit `~/.inorbit/local/agent.env.sh` to customize:
+
+```bash
+# Port for SDK communication (default: 5000)
+INORBIT_AGENT_API_PORT=5000
+
+# Binding address (default: localhost)
+INORBIT_AGENT_API_BINDING=localhost
+```
+
+## Troubleshooting
+
+<Warning>
+If your robot doesn't appear in InOrbit Control, check the agent logs at `~/.inorbit/local/inorbit_agent.log`. Contact [support@inorbit.ai](mailto:support@inorbit.ai) if you need help.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Robot SDK" icon="code" href="/ground-control/robot-integration/robot-sdk">
+    Add custom data with C++ or Python
+  </Card>
+  <Card title="Configure Data Sources" icon="database" href="/ground-control/configuration/kinds/data-sources">
+    Define what data to collect
+  </Card>
+</CardGroup>
+

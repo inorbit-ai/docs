@@ -39,12 +39,24 @@
       {
         "product": "Space Intelligence",
         "icon": "rocket",
-        "description": "Fleet management and business execution for end users",
+        "description": "AI-powered robot operations for enterprise facilities",
         "tabs": [
           {
-            "tab": "Overview",
+            "tab": "Getting Started",
             "pages": [
               "space-intelligence/index"
+            ]
+          },
+          {
+            "tab": "Business Execution System",
+            "pages": [
+              "space-intelligence/business-execution/bes"
+            ]
+          },
+          {
+            "tab": "RobOps Copilot",
+            "pages": [
+              "space-intelligence/business-execution/copilot"
             ]
           }
         ]
@@ -57,36 +69,45 @@
           {
             "tab": "Getting Started",
             "pages": [
-              "ground-control/index",
-              "ground-control/authentication"
+              "ground-control/index"
             ]
           },
           {
-            "tab": "Application Integration",
-            "pages": [
-              "ground-control/application-integration/overview",
-              "ground-control/application-integration/rest-apis",
-              "ground-control/application-integration/embeds",
-              "ground-control/application-integration/configuration-as-code",
-              "ground-control/application-integration/incident-management"
-            ]
-          },
-          {
-            "tab": "Robot Integration",
+            "tab": "Connecting Devices",
             "pages": [
               "ground-control/robot-integration/overview",
+              "ground-control/robot-integration/agent",
+              "ground-control/robot-integration/connectors",
               "ground-control/robot-integration/robot-sdk",
               "ground-control/robot-integration/edge-sdk",
               "ground-control/robot-integration/interoperability"
             ]
           },
           {
+            "tab": "API Reference",
+            "pages": [
+              "ground-control/application-integration/rest-apis",
+              {
+                "group": "REST API",
+                "openapi": "inorbit.openapi.json"
+              }
+            ]
+          },
+          {
             "tab": "Configuration",
             "pages": [
               "ground-control/configuration/overview",
+              "ground-control/authentication",
               "ground-control/configuration/cli",
               {
-                "group": "Configuration Kinds Reference",
+                "group": "Concepts",
+                "pages": [
+                  "ground-control/concepts/expressions-language",
+                  "ground-control/concepts/maps"
+                ]
+              },
+              {
+                "group": "Configuration Kinds",
                 "pages": [
                   "ground-control/configuration/kinds/index",
                   "ground-control/configuration/kinds/data-sources",
@@ -104,14 +125,6 @@
                   "ground-control/configuration/kinds/traffic-management"
                 ]
               }
-            ]
-          },
-          {
-            "tab": "Concepts",
-            "pages": [
-              "ground-control/concepts/overview",
-              "ground-control/concepts/expressions-language",
-              "ground-control/concepts/maps"
             ]
           }
         ]

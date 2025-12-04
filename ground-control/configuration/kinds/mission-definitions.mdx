@@ -1,185 +1,213 @@
 ---
 title: "Mission Definitions"
-description: "Configuration reference for Mission Definitions"
+description: "Define missions for your robot fleet and configure their execution"
 ---
 
-_**Status: Early Access**. Note: These features are not available in all Editions.
-See [pricing page](https://www.inorbit.ai/pricing?hsLang=en)._
+<Note>
+**Status: Early Access** — These features may not be available in all accounts.
+</Note>
 
-> Mission Definition config
+Mission definitions allow you to configure reusable missions that robots in your fleet can execute. A mission is a sequence of steps—navigating to waypoints, executing actions, waiting for conditions, and updating mission data—that can be triggered on-demand or scheduled.
+
+This configuration works together with [mission tracking](/ground-control/configuration/kinds/mission-tracking) to monitor mission progress, whether missions are defined through InOrbit or executed by proprietary robot software and reported via APIs.
+
+## When to Use
+
+- **Automate repetitive tasks**: Define delivery routes, cleaning paths, or patrol missions once and dispatch them repeatedly
+- **Orchestrate multi-step workflows**: Combine navigation, actions, and waits into complex sequences
+- **Coordinate across robots**: Use selectors to target specific robots or tags, and target other robots within mission steps
+
+## Key Concepts
+
+### Mission Steps
+
+Missions consist of sequential `steps`, each performing one of these operations:
+
+| Step Type | Field | Description |
+|-----------|-------|-------------|
+| **Navigate to waypoint** | `waypoint` | Go to coordinates or a named waypoint |
+| **Execute action** | `runAction` | Trigger a robot action (defined in ActionDefinitions) |
+| **Update data** | `data` | Set mission metadata (key-value pairs) |
+| **Wait for condition** | `waitUntil` | Pause until an expression evaluates to `true` |
+| **Simple wait** | `timeoutSecs` | Pause for a fixed number of seconds |
+| **Conditional branch** | `if` | Execute different steps based on a condition |
+
+Every step can include:
+- `label`: Human-readable description shown in mission widgets
+- `timeoutSecs`: Maximum wait time before the step times out
+- `completeTask`: Mark a named task as complete (for progress tracking)
+
+### Robot Selector
+
+Use `selector` to restrict which robots can execute a mission:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tagIds` | `string[]` | Robot must have all these tags |
+| `robotIds` | `string[]` | Robot must be in this list |
+| `robotId` | `string` | Single robot ID |
+| `namePatterns` | `string[]` | Robot name must match one of these regex patterns |
+
+All conditions are ANDed—a robot must satisfy all specified conditions.
+
+### Cross-Robot Targeting
+
+Some steps (`runAction`, `waitUntil`, `data`) can target a different robot using the `target` field:
+
+```yaml
+runAction:
+  actionId: acknowledge-delivery
+  target:
+    robotId: control-station-01
+```
+
+## Examples
+
+### Basic Delivery Mission
 
 ```yaml
 apiVersion: v0.1
 kind: MissionDefinition
 metadata:
-  scope: account
-  id: "<missionId>"
+  scope: account/<accountId>
+  id: delivery-mission
 spec:
-  label: Mission name
-  steps: # The sequence of steps to complete the mission
-  - label: "Setup mission data"
-    data:
-      # Sets mission's metadata. Also available through Mission Tracking APIs,
-      # from robot-reported data
-      itemType: "bottle"
-      weight: 1.23
-      containerNumber: 1
-  - label: "Go to drop off location"
-    waypoint:
-      # Navigating to a waypoint, given its coordinates (see Named Waypoint example below)
-      x: 1.10
-      y: 20.98
-      theta: 1.23
-      frameId: "map"
-    timeoutSecs: 300
-  - label: "Wait 5 seconds"
-    # A simple wait
-    timeoutSecs: 5
-  - label: "Open lid"
-    runAction:
-      # Runs an action defined in the robot
-      actionId: script-open-lid
-      arguments:
-        ledColor: "#ff00ee"
-        lidNumber:
-          _data: "containerNumber" # Refers to values stored in "data" object
-  - label: "Wait for lid to be closed"
-    waitUntil:
-      # Evaluates an expression and waits until it has a True value
-      expression: getValue("lid_open") == 0
-      timeoutSecs: 60
-    completeTask: "Pickup"
-  - label: "Go to dock"
-    # Navigates to a pre-defined, named waypoint
-    waypoint: "dock"
-    completeTask: "Delivery"
+  label: Delivery Mission
+  steps:
+    - label: "Setup mission data"
+      data:
+        itemType: "bottle"
+        weight: 1.23
+        containerNumber: 1
+    - label: "Go to drop off location"
+      waypoint:
+        x: 1.10
+        y: 20.98
+        theta: 1.23
+        frameId: "map"
+      timeoutSecs: 300
+    - label: "Wait 5 seconds"
+      timeoutSecs: 5
+    - label: "Open lid"
+      runAction:
+        actionId: script-open-lid
+        arguments:
+          ledColor: "#ff00ee"
+          lidNumber:
+            _data: "containerNumber"  # Reference mission data
+    - label: "Wait for lid to be closed"
+      waitUntil:
+        expression: getValue("lid_open") == 0
+        timeoutSecs: 60
+      completeTask: "Pickup"
+    - label: "Go to dock"
+      waypoint: "dock"  # Named waypoint reference
+      completeTask: "Delivery"
   selector:
     robot:
-      # The selector allows restricting which robots can execute the mission.
-      # Criteria include robot tags, inclusion lists or name patterns.
       tagIds: ["delivery_bot"]
 ```
-> Mission Definition with expression evaluation
+
+### Mission with Expression Evaluation
+
+Evaluate expressions and optionally target specific robots:
 
 ```yaml
 apiVersion: v0.1
 kind: MissionDefinition
 metadata:
-  scope: account
-  id: "<missionId>"
+  scope: account/<accountId>
+  id: data-collection-mission
 spec:
-  label: Mission Name
-  steps: 
-  - data: 
-      Greetings : helloWorld 
-      Mode DataSource for r2d2 : 
-          expression: getValue("mode_ds") 
+  label: Data Collection Mission
+  steps:
+    - data:
+        Greetings: helloWorld
+        Mode DataSource for r2d2:
+          expression: getValue("mode_ds")
           target:
-              robotId: r2d2
-      Mode Datasource for Wall-e: 
-          expression: getValue("mode_ds") 
+            robotId: r2d2
+        Mode Datasource for Wall-e:
+          expression: getValue("mode_ds")
 ```
 
-InOrbit allows configuring what missions are for your robot fleet, as well having them executed
-by your robots: whether these are repeated, pre-defined missions or one-off missions that trigger
-a one time task. This is achieved through the `MissionDefinition` kind and the
-Mission Dispatch APIs
+## Schema Reference
 
+### Top-Level Fields
 
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | `string` | Yes | Human-readable mission name |
+| `steps` | `array` | Yes | Sequence of mission steps |
+| `selector` | `object` | No | Restricts which robots can execute |
 
+### Step Fields
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `label` | `string` | Step description |
+| `timeoutSecs` | `number` | Maximum wait time in seconds |
+| `completeTask` | `string` | Task name to mark complete |
+| `waypoint` | `object\|string` | Navigation target (coordinates or named waypoint) |
+| `runAction` | `object` | Action to execute |
+| `data` | `object` | Mission metadata to set |
+| `waitUntil` | `object` | Condition to wait for |
+| `if` | `object` | Conditional branching with `then` and `else` |
 
-Note that these definitions work together with [mission tracking](/ground-control/configuration/kinds/mission-tracking),
-which works both on missions defined **through** InOrbit as well as missions executed by any proprietary
-software in the robot that are reported to InOrbit through the Mission Tracking APIs.
-Some parameters to tune mission execution and mission tracking can be adjusted
-using the `MissionTracking` kind.
+### Waypoint Object
 
-Missions are defined using the `MissionDefinition` kind. Each mission definition is identified by
-a unique `missionId` and uses a human-readable `label` or name.
-Missions consist of a series of `steps` to be executed sequentially, and may also contain
-a `selector` to define which robots are allowed to execute it.
-
-Steps can be of several types. All steps accept a `label` to describe the step (which is displayed
-in mission widgets), and an optional `timeoutSecs` property to define a maximum wait in seconds for
-the step to execute.
-
-The field `completeTask` allows to define a "task" to be marked as complete when this step
-finishes execution. This is displayed in Mission widgets, and useful to understand the overall
-progress of a mission consisting of many (small) individual steps. For example, after going
-to a drop-off location, opening a lid and waiting for a user confirmation (3 mission steps) a
-single task "Delivery" could be mark as completed.
-
-The available mission steps are:
-
-- **Navigating to a waypoint**: If a `waypoint` property is present. This field can contain an
-  object with `{ x, y, theta, frameId }` representing the target pose to navigate to.
-  The frameId is optional; used to reference sub-locations (e.g. different floors).
-  Alternatively, a single string of the form `""` can be used to refer to existing,
-  named waypoints defined in the robot location
-  (defined through the Annotations API or in the Navigation widget),
-
-- **Executing an action**: A mission step can consist of executing an arbitrary action in the
-  robot. This action could represent turning on a rotary brush, opening a lid to allow a user
-  to pick up an object, etc.
-  These steps contain an `actionId` field, referring to an already defined `ActionDefinition`:
-  they may be implemented through scripts installed in the robot, publishing messages to ROS topics
-  or other action types; see [action definitions](#action-definitions).
-  The optional `arguments` object define the action argument values. They may be constants (numbers,
-  strings) or refer to mission fields within the `data` (mission metadata created by user) or
-  `arguments` (mission metadata passed while dispatching the mission). A single object such as
-  `{ _data: "" }` within `arguments` will get replaced by the data value at the moment
-  the step is to be started. Similarly, a key `_arguments` is used to fetch values from the initial
-  mission arguments.
-  If enabled, actions can also be run on a _different_ robot, for scenarios where multiple robots
-  or devices need to be orchestrated.
-  This uses the `target` mechanism -- see "Waiting for a condition" below.
-
-- **Updating mission's data**: At any point during the mission (specially at mission start,
-  or after completing intermediate goals) the mission _metadata_ (see Mission Tracking) can be
-  updated.
-  This metadata is a simple dictionary of key-value objects, containing whatever values represent
-  the mission data: product ids, route name, order numbers, customer names, etc.
-  This step type is defined with a `data` field, containing an object with the mapping from
-  metadata field names to their values.           
-  You can also make an expression evaluation using the `expression` field. And, similar to "Waiting for a condition" mechanism, you also have the option to select in which robot the expression is evaluated. To do so, you can use the `target` field, and select the robotId to use. See example for more.
-
-- **Waiting for a condition**: A mission step may consist of simply waiting for a
-  condition to happen. This is defined with a field `waitUntil`. These steps contain an `expression`
-  field. The step will wait until the expression evaluates to `true`.
-  See [expressions language](/ground-control/concepts/expressions-language#expressions-language) to check the supported expressions.
-  Just as when running actions, conditions can also be evaluated on another robot, not the one
-  executing the mission. For this, use `{ target: { robotId: " } }` in the `waitUntil`
-  step. This is also supported when running actions.
-
-- **A simple wait** of a predefined number of seconds. This step only uses
-  the `timeoutSecs` property.
-
-> Mission Selector schema
-
-```json
-{
-  "robot": {
-    "tagIds": ["picker-robots", "firmware-023"],
-    "robotIds": ["picker001", "picker002"],
-    "robotId": "picker001",
-    "namePatterns": ["picker.*"]
-  }
-}
+```yaml
+waypoint:
+  x: 1.0          # X coordinate
+  y: 2.0          # Y coordinate
+  theta: 0.5      # Orientation (radians)
+  frameId: "map"  # Optional frame ID (for multi-floor)
 ```
 
-The `selector` property is used in mission definitions to restrict what robots can execute
-the mission.
-It consists of a single property `robot` with different ways to define what robots are accepted.
-If multiple conditions are present, all of them must hold for a robot to execute the mission.
-Conditions are defined by fields:
+Or reference a named waypoint:
 
-- `tagIds`: Defines a list of tags (given by their ids) that the robots must have at the time
-  of dispatching the mission. Its value must be list of strings.
-- `robotIds`: Explicitly enumerates which robots (given by their ids) can execute the mission.
-  Any of these robots can be selected. Its value must be list of strings.
-- `robotId`: Similar to `robotIds`, as a shorter form to define a single robot by an id.
-- `namePatterns`: Allows defining one or more regular expressions that will need to match the
-  robot name for a robot to be selected for the mission.
+```yaml
+waypoint: "dock"  # References a SpatialAnnotation waypoint
+```
 
+### Run Action Object
 
+```yaml
+runAction:
+  actionId: my-action        # Required: ActionDefinition ID
+  arguments:                 # Optional: action arguments
+    param1: "value"
+    param2:
+      _data: "missionField"  # Reference mission data
+      _arguments: "dispatchArg"  # Reference dispatch arguments
+  target:                    # Optional: run on different robot
+    robotId: other-robot
+```
+
+### Wait Until Object
+
+```yaml
+waitUntil:
+  expression: getValue("sensor") > 100  # Expression to evaluate
+  timeoutSecs: 60                        # Optional timeout
+  target:                                # Optional: evaluate on different robot
+    robotId: other-robot
+```
+
+### Selector Object
+
+```yaml
+selector:
+  robot:
+    tagIds: ["picker-robots", "firmware-023"]
+    robotIds: ["picker001", "picker002"]
+    robotId: "picker001"
+    namePatterns: ["picker.*"]
+```
+
+## Related Documentation
+
+- [Mission Tracking](/ground-control/configuration/kinds/mission-tracking) — Monitor mission execution
+- [Action Definitions](/ground-control/configuration/kinds/action-definitions) — Define robot actions
+- [Spatial Annotations](/ground-control/configuration/kinds/spatial-annotations) — Define named waypoints
+- [Expressions Language](/ground-control/concepts/expressions-language) — Syntax for conditions and calculations
