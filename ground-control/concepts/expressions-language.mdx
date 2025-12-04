@@ -65,7 +65,7 @@ Additionally, robot-specific functions allow evaluating conditions on robot-repo
 
 - `minValue(<ds>, <secs>)`, `maxValue(<ds>, <secs>)`, `meanValue(<ds>, <secs>)`: Aggregation operators to obtain the minimum (resp. maximum, average) value of the data source identified by `<ds>` during the last N seconds.
 
-- `hasTag(<tag>)`: Determines if a robot contains a tag -- See [Collections](https://www.inorbit.ai/docs?hsLang=en#collections-locations-modes)
+- `hasTag(<tag>)`: Determines if a robot contains a tag (tags are labels applied to robots for filtering and organization)
 
 - `distinctValues(<ds>, <seconds>)` and `sustainedValue(<ds>, <seconds>)`: Determine all unique values of a given source `<ds>` for the last `<seconds>` time window. The function `distinctValues` returns all these values in a list (see array operators above). The function `sustainedValue` can be used to know if the data source has reported one unique value over that time: in that case it returns this value; otherwise it returns `null`.
 

@@ -68,12 +68,12 @@
     {
       "name": "missions",
       "x-displayName": "Missions",
-      "description": "Missions Execution.\n\nThis API allows executing missions on robots.\nThe mission to execute can be pre-defined through\nthe [MissionDefinition](https://developer.inorbit.ai/docs#configuring-mission-definitions)\nConfig API kind, or launched as a one-off mission providing its definition at dispatch time.\n\nThe execution of the mission can also be controlled through this API: Abort, pause or\nresume the mission.\n\nWhen using these APIs there is no need to invoke [MissionTracking](#tag/Mission Tracking)\nAPIs manually; all executed missions will also be tracked.\n"
+      "description": "Missions Execution.\n\nThis API allows executing missions on robots.\nThe mission to execute can be pre-defined through\nthe [MissionDefinition](https://docs.inorbit.ai/ground-control/configuration/kinds/mission-definitions)\nConfig API kind, or launched as a one-off mission providing its definition at dispatch time.\n\nThe execution of the mission can also be controlled through this API: Abort, pause or\nresume the mission.\n\nWhen using these APIs there is no need to invoke [MissionTracking](#tag/Mission Tracking)\nAPIs manually; all executed missions will also be tracked.\n"
     },
     {
       "name": "missionTracking",
       "x-displayName": "Mission Tracking",
-      "description": "Used to track robot missions' execution for later analysis and metrics, for example in the\nMissions dashboards.\n\nMission Tracking APIs can be used through robot agent updates to track the execution\nof a mission (or updates to its data) when this execution is controlled by the robot.\nThey can also be invoked from other external services, for example a proprietary fleet\nmanager.\n\nThese APIs are also (implicitly) used when running missions from the InOrbit platform\nthrough the [Missions APIs](#tag/missions). When executing missions in this way, there is\nnormally no need to call most of these endpoints (e.g. creating and ending a missions),\nexcept to send mission data updates to understand progress or results of the mission\n(such as number of items scanned or picked, etc).\n\nRefer to [this tutorial](https://developer.inorbit.ai/tutorials#mission-tracking-tutorial)\nfor details.\n"
+      "description": "Used to track robot missions' execution for later analysis and metrics, for example in the\nMissions dashboards.\n\nMission Tracking APIs can be used through robot agent updates to track the execution\nof a mission (or updates to its data) when this execution is controlled by the robot.\nThey can also be invoked from other external services, for example a proprietary fleet\nmanager.\n\nThese APIs are also (implicitly) used when running missions from the InOrbit platform\nthrough the [Missions APIs](#tag/missions). When executing missions in this way, there is\nnormally no need to call most of these endpoints (e.g. creating and ending a missions),\nexcept to send mission data updates to understand progress or results of the mission\n(such as number of items scanned or picked, etc).\n\nRefer to [this tutorial](https://docs.inorbit.ai/ground-control/configuration/kinds/mission-tracking)\nfor details.\n"
     },
     {
       "name": "trafficManagement",
@@ -2345,7 +2345,7 @@
         ],
         "summary": "Dispatches a mission for execution",
         "operationId": "dispatchMission",
-        "description": "Dispatches a mission for execution. It can use a previously-defined mission\n[(see Mission Definition)](https://developer.inorbit.ai/docs#configuring-mission-definitions),\nidentified by `missionDefinitionId` or a one-off mission definition provided in the dispatch\nAPI call.\n",
+        "description": "Dispatches a mission for execution. It can use a previously-defined mission\n[(see Mission Definition)](https://docs.inorbit.ai/ground-control/configuration/kinds/mission-definitions),\nidentified by `missionDefinitionId` or a one-off mission definition provided in the dispatch\nAPI call.\n",
         "requestBody": {
           "description": "Mission object to be created",
           "required": true,
@@ -3937,7 +3937,7 @@
     "securitySchemes": {
       "appKey": {
         "type": "apiKey",
-        "description": "InOrbit appKey authenticates API requests using a token.\n\nYou can obtain your appKey in the [Developer Portal](https://developer.inorbit.ai/).\n",
+        "description": "InOrbit appKey authenticates API requests using a token.\n\nYou can obtain your appKey in the [Authentication docs](https://docs.inorbit.ai/ground-control/authentication).\n",
         "in": "header",
         "name": "x-auth-inorbit-app-key"
       }
@@ -4894,7 +4894,7 @@
             "properties": {
               "missionDefinition": {
                 "type": "object",
-                "description": "A mission definition. Must match the schema of a `spec` as defined in [(Mission Definition)](https://developer.inorbit.ai/docs#configuring-mission-definitions)\n"
+                "description": "A mission definition. Must match the schema of a `spec` as defined in [(Mission Definition)](https://docs.inorbit.ai/ground-control/configuration/kinds/mission-definitions)\n"
               }
             }
           }
@@ -5501,7 +5501,7 @@
         "properties": {
           "expression": {
             "type": "string",
-            "description": "Expression to be evaluated.\nSee [expressions language reference](https://developer.inorbit.ai/docs#expressions-language)\n"
+            "description": "Expression to be evaluated.\nSee [expressions language reference](https://docs.inorbit.ai/ground-control/concepts/expressions-language)\n"
           },
           "attributes": {
             "type": "object",
