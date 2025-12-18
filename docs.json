@@ -78,6 +78,35 @@
               "ground-control/robot-integration/overview",
               "ground-control/robot-integration/agent",
               "ground-control/robot-integration/connectors",
+              {
+                "group": "Connector Framework",
+                "pages": [
+                  "ground-control/robot-integration/connector-framework/index",
+                  "ground-control/robot-integration/connector-framework/getting-started",
+                  {
+                    "group": "Usage",
+                    "pages": [
+                      "ground-control/robot-integration/connector-framework/usage/index",
+                      "ground-control/robot-integration/connector-framework/usage/single-robot",
+                      "ground-control/robot-integration/connector-framework/usage/fleet",
+                      "ground-control/robot-integration/connector-framework/usage/commands-handling"
+                    ]
+                  },
+                  "ground-control/robot-integration/connector-framework/configuration",
+                  "ground-control/robot-integration/connector-framework/publishing",
+                  {
+                    "group": "Specification",
+                    "pages": [
+                      "ground-control/robot-integration/connector-framework/specification/index",
+                      "ground-control/robot-integration/connector-framework/specification/connector",
+                      "ground-control/robot-integration/connector-framework/specification/models",
+                      "ground-control/robot-integration/connector-framework/specification/commands",
+                      "ground-control/robot-integration/connector-framework/specification/utils",
+                      "ground-control/robot-integration/connector-framework/specification/logging"
+                    ]
+                  }
+                ]
+              },
               "ground-control/robot-integration/robot-sdk",
               "ground-control/robot-integration/edge-sdk",
               "ground-control/robot-integration/interoperability"
