@@ -3,6 +3,8 @@ name: Sync Connector Framework Docs
 on:
   # Manual trigger
   workflow_dispatch:
+  # Test trigger
+  push:
   # Nightly sync
   schedule:
     - cron: "17 3 * * *"
