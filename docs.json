@@ -78,6 +78,7 @@
               "ground-control/robot-integration/overview",
               "ground-control/robot-integration/agent",
               "ground-control/robot-integration/connectors",
+              "ground-control/robot-integration/connector-framework/index",
               "ground-control/robot-integration/robot-sdk",
               "ground-control/robot-integration/edge-sdk",
               "ground-control/robot-integration/interoperability"
