@@ -3,8 +3,5 @@ title: "Usage"
 description: "Guides for implementing connectors"
 ---
 
-## Guides
+Content synced from [inorbit-connector-python](https://github.com/inorbit-ai/inorbit-connector-python).
 
-- [Single-Robot Connector](/ground-control/robot-integration/connector-framework/usage/single-robot)
-- [Fleet Connector](/ground-control/robot-integration/connector-framework/usage/fleet)
-- [Commands Handling](/ground-control/robot-integration/connector-framework/usage/commands-handling)
