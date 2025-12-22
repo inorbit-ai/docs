@@ -23,8 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: inorbit-ai/inorbit-connector-python
-          # ref: main
-          ref: b-Tomas/mintlify-docs
+          ref: main
           path: connector-repo
 
       - name: Set up Python
