@@ -3,8 +3,6 @@ name: Sync Connector Framework Docs
 on:
   # Manual trigger
   workflow_dispatch:
-  # Test trigger
-  push:
   # Nightly sync
   schedule:
     - cron: "17 3 * * *"
@@ -25,8 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: inorbit-ai/inorbit-connector-python
-          # ref: main
-          ref: b-Tomas/fix-mintlify-docs
+          ref: main
           path: connector-repo
 
       - name: Set up Python
