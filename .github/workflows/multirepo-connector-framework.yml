@@ -3,6 +3,8 @@ name: Sync Connector Framework Docs
 on:
   # Manual trigger
   workflow_dispatch:
+  # Test trigger
+  push:
   # Nightly sync
   schedule:
     - cron: "17 3 * * *"
@@ -23,7 +25,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: inorbit-ai/inorbit-connector-python
-          ref: main
+          # ref: main
+          ref: b-Tomas/fix-mintlify-docs
           path: connector-repo
 
       - name: Set up Python
@@ -44,6 +47,58 @@ jobs:
           # Copy built docs
           mkdir -p docs-repo/ground-control/robot-integration/connector-framework
           cp -r connector-repo/docs/mintlify/_build/* docs-repo/ground-control/robot-integration/connector-framework/
+
+      - name: Merge navigation into docs.json
+        run: |
+          cd docs-repo
+          
+          NAV_FILE="ground-control/robot-integration/connector-framework/navigation.json"
+          DOCS_JSON="docs.json"
+          
+          if [ -f "$NAV_FILE" ]; then
+            echo "Merging connector framework navigation into docs.json..."
+            
+            # Validate navigation.json is valid JSON
+            if ! jq empty "$NAV_FILE" 2>/dev/null; then
+              echo "Error: navigation.json is not valid JSON"
+              exit 1
+            fi
+            
+            # Read the navigation object
+            NAV_CONTENT=$(cat "$NAV_FILE")
+            
+            # Replace any existing connector framework entry with the new navigation.
+            # This handles both:
+            # - Simple string: "ground-control/robot-integration/connector-framework/index"
+            # - Existing group object: {"group": "Connector Framework", ...}
+            jq --argjson nav "$NAV_CONTENT" '
+              (.navigation.products[] | 
+                select(.product == "Ground Control") | 
+                .tabs[] | 
+                select(.tab == "Connecting Devices") | 
+                .pages) |= map(
+                  if (. == "ground-control/robot-integration/connector-framework/index") or
+                     (type == "object" and .group == "Connector Framework")
+                  then $nav 
+                  else . 
+                  end
+                )
+            ' "$DOCS_JSON" > "${DOCS_JSON}.tmp"
+            
+            # Validate the resulting JSON is valid
+            if ! jq empty "${DOCS_JSON}.tmp" 2>/dev/null; then
+              echo "Error: Merge produced invalid JSON"
+              exit 1
+            fi
+            
+            mv "${DOCS_JSON}.tmp" "$DOCS_JSON"
+            echo "Navigation merged successfully"
+            
+            # Clean up navigation.json from the copied docs
+            rm -f "$NAV_FILE"
+          else
+            echo "Warning: navigation.json not found, skipping merge"
+          fi
 
       - name: Commit and push
         run: |
